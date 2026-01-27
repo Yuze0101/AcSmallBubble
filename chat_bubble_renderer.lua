@@ -33,15 +33,25 @@ function chat_bubble_renderer.renderBubble(CurrentlyProcessedCar, chatBubbles, d
 
     ui.endOutline(0, 6)
 
-    -- 渲染前车距离（仅当前车存在时）
+    -- 渲染前车距离提示文字（仅当前车存在时）
     ui.beginOutline()
     local leadCarIndex, distance = vehicle_data.findLeadCar(carData.index)
     local distanceText = ""
     if leadCarIndex and distance > 0 then
-        distanceText = string.format("%.1f m", distance)
+        -- 根据距离显示不同文本
+        if distance <= 5 then
+            distanceText = "Oh！！！"
+        elseif distance <= 10 then
+            distanceText = "哈压库！哈压库！"
+        else
+            distanceText = "杂鱼~杂鱼"
+        end
+    else
+        -- 如果没有前车，也显示默认文本
+        distanceText = "杂鱼~杂鱼"
     end
     ui.dwriteTextAligned(distanceText, 42, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 85), false,
-        rgb(0.7, 0.7, 0.7))
+    rgb(0.7, 0.7, 0.7))
     ui.endOutline(0, 4)
 
     -- 使用预创建的GIFPlayer绘制左侧圆形AMD图标，使用 Images/amd.gif
@@ -60,8 +70,8 @@ function chat_bubble_renderer.renderBubble(CurrentlyProcessedCar, chatBubbles, d
             ui.CornerFlags.All)
     end
 
-    -- 绘制右侧圆形头像占位符，使用 Images/rust.jpg 图像
-    local avatarCenterX = 750 -- 在文本右边放置圆形头像
+    -- 绘制右侧圆形图像，根据与其他车辆的距离显示不同图像
+    local avatarCenterX = 750 -- 在文本右边放置圆形图像
     local avatarCenterY = 140
     local avatarRadius = 65
 
@@ -69,8 +79,16 @@ function chat_bubble_renderer.renderBubble(CurrentlyProcessedCar, chatBubbles, d
     local topLeftAvatar = vec2(avatarCenterX - avatarRadius, avatarCenterY - avatarRadius)
     local bottomRightAvatar = vec2(avatarCenterX + avatarRadius, avatarCenterY + avatarRadius)
 
+    -- 根据距离选择要显示的图像
+    local imageToDisplay = 'Images/A.png' -- 默认显示图像A（距离大于15米）
+    if distance and distance <= 5 then
+        imageToDisplay = 'Images/C.png' -- 距离5米以内显示图像C
+    elseif distance and distance <= 10 then
+        imageToDisplay = 'Images/B.png' -- 距离5-15米显示图像B
+    end
+
     -- 使用drawImageRounded绘制圆形图像，圆角半径等于图像半径实现圆形效果
-    ui.drawImageRounded('Images/rust.jpg', topLeftAvatar, bottomRightAvatar, rgbm(1, 1, 1, 1), nil, nil, avatarRadius,
+    ui.drawImageRounded(imageToDisplay, topLeftAvatar, bottomRightAvatar, rgbm(1, 1, 1, 1), nil, nil, avatarRadius,
         ui.CornerFlags.All)
 
     ui.popDWriteFont()
@@ -78,7 +96,8 @@ function chat_bubble_renderer.renderBubble(CurrentlyProcessedCar, chatBubbles, d
 end
 
 -- 为特定车辆渲染聊天气泡的主要函数
-function chat_bubble_renderer.renderChatBubble(carData, driverData, chatBubbles, sim, bubbleDistance, nearRange, midRange, farRange, globaldt)
+function chat_bubble_renderer.renderChatBubble(carData, driverData, chatBubbles, sim, bubbleDistance, nearRange, midRange,
+                                               farRange, globaldt)
     local CurrentlyProcessedCar = carData
     local bubble = chatBubbles[carData.index]
 
@@ -91,7 +110,7 @@ function chat_bubble_renderer.renderChatBubble(carData, driverData, chatBubbles,
     end
 
     -- 每隔一定时间更新一次画布，而不是使用车辆数量作为阈值
-    local updateTimeThreshold = 1.0 / 30  -- 目标更新频率为30 FPS
+    local updateTimeThreshold = 1.0 / 30 -- 目标更新频率为30 FPS
     if driverData[carData.index].lastCanvasUpdateTime > updateTimeThreshold and driverData[carData.index].distanceToCamera < bubbleDistance then
         chatBubbles[carData.index].canvas:update(function()
             chat_bubble_renderer.renderBubble(CurrentlyProcessedCar,
@@ -102,11 +121,12 @@ function chat_bubble_renderer.renderChatBubble(carData, driverData, chatBubbles,
 
     if driverData[carData.index].distanceToCamera < bubbleDistance then
         -- 计算缩放和淡化因子
-        local sizeScale = math.clamp((((bubbleDistance) - (driverData[carData.index].distanceToCamera)) / (bubbleDistance)) ^
-        0.9, 0.249, 1)
+        local sizeScale = math.clamp(
+            (((bubbleDistance) - (driverData[carData.index].distanceToCamera)) / (bubbleDistance)) ^
+            0.9, 0.249, 1)
         local fadeScale = math.clamp(
-        ((math.max(bubbleDistance, driverData[carData.index].distanceToCamera + 0.0001) - (driverData[carData.index].distanceToCamera)) / (bubbleDistance)) ^
-        0.9, 0.249, 1)
+            ((math.max(bubbleDistance, driverData[carData.index].distanceToCamera + 0.0001) - (driverData[carData.index].distanceToCamera)) / (bubbleDistance)) ^
+            0.9, 0.249, 1)
 
         -- 根据距离和淡入状态绘制气泡
         if chatBubbles[carData.index].fadeCurrent > 0 then
@@ -130,10 +150,10 @@ function chat_bubble_renderer.renderChatBubble(carData, driverData, chatBubbles,
         -- 平滑过渡淡入淡出值
         if chatBubbles[carData.index].fadeTarget > chatBubbles[carData.index].fadeCurrent then
             chatBubbles[carData.index].fadeCurrent = math.clamp(
-            chatBubbles[carData.index].fadeCurrent + globaldt * 2, 0, 1)
+                chatBubbles[carData.index].fadeCurrent + globaldt * 2, 0, 1)
         elseif chatBubbles[carData.index].fadeTarget < chatBubbles[carData.index].fadeCurrent then
             chatBubbles[carData.index].fadeCurrent = math.clamp(
-            chatBubbles[carData.index].fadeCurrent - globaldt, 0, 1)
+                chatBubbles[carData.index].fadeCurrent - globaldt, 0, 1)
         end
     else
         -- 车辆太远，隐藏气泡

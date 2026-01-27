@@ -20,8 +20,8 @@ local globaldt = 0.016
 local globalTimer = 0
 local carsInRangeMultiplierCurrent = 1
 local fpsCounter = 0
-local fpsUpdateInterval = 0 -- 控制更新频率的时间间隔（秒）
-local fpsTarget = 30        -- 目标更新帧率
+local fpsUpdateInterval = 0  -- 控制更新频率的时间间隔（秒）
+local fpsTarget = 30         -- 目标更新帧率
 
 -- 初始化车辆数据
 driverData, chatBubbles, numberOfCars = vehicle_data.init(numberOfCars)
