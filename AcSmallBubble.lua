@@ -86,7 +86,7 @@ end
 
 -- 注册聊天气泡作为驾驶员标签覆盖层
 if Sim.driverNamesShown == true then
-    ui.onDriverNameTag(false, rgbm(1, 1, 1, 0), function(carData)
+    ui.onDriverNameTag(true, rgbm(1, 1, 1, 0), function(carData)
         chat_bubble_renderer.renderChatBubble(carData, driverData, chatBubbles, Sim, bubbleDistance, nearRange, midRange,
             farRange, globaldt)
     end, { distanceMultiplier = math.ceil(bubbleDistance / 10), tagSize = vec2(1000, 200) })

@@ -13,15 +13,9 @@ function vehicle_data.init(numberOfCars)
         numberOfCars = numberOfCars + 1
         driverData[i] = {}
         chatBubbles[i] = {
-            far = ui.ExtraCanvas(vec2(1000, 200), 1, render.AntialiasingMode.ExtraSharpCMAA),
-            farFadeCurrent = 0,
-            farFadeTarget = 0,
-            mid = ui.ExtraCanvas(vec2(1000, 200), 1, render.AntialiasingMode.ExtraSharpCMAA),
-            midFadeCurrent = 0,
-            midFadeTarget = 0,
-            near = ui.ExtraCanvas(vec2(1000, 200), 1, render.AntialiasingMode.ExtraSharpCMAA),
-            nearFadeCurrent = 0,
-            nearFadeTarget = 0,
+            canvas = ui.ExtraCanvas(vec2(1200, 240), 1, render.AntialiasingMode.ExtraSharpCMAA),
+            fadeCurrent = 0,
+            fadeTarget = 0,
             message = "",   -- 当前消息
             timestamp = 0,  -- 消息接收时间
             duration = 5,   -- 显示消息的持续时间（秒）
@@ -30,7 +24,7 @@ function vehicle_data.init(numberOfCars)
             mockMessage = "Hello ,Mock message",
             mockActive = true
         }
-        driverData[i].driverName = ac.getCar(i).driverName
+        driverData[i].driverName = ac.getCar(i):driverName()
     end
 
     return driverData, chatBubbles, numberOfCars
@@ -42,11 +36,12 @@ function vehicle_data.onSessionStart(driverData, chatBubbles)
         if not ac.getCar(i) then
             break
         end
-        driverData[i].driverName = ac.getCar(i).driverName
+        driverData[i].driverName = ac.getCar(i):driverName()
+       
         -- 为新车添加模拟消息
         if not chatBubbles[i].mockMessage then
             chatBubbles[i].mockMessage = "Hello from " ..
-            (ac.getCar(i) and ac.getCar(i).driverName or "Unknown Driver") .. "!"
+            (ac.getCar(i) and ac.getCar(i):driverName() or "Unknown Driver") .. "!"
             chatBubbles[i].mockActive = true
         end
     end
@@ -72,50 +67,48 @@ function vehicle_data.calculateCarsInRangeMultiplier(sim, bubbleDistance, chatBu
     return math.clamp(math.max(1, carsInRangeMultiplierCurrent / 2), 1, 5)
 end
 
--- 查找前车并计算距离
-function vehicle_data.findLeadCar(currentCarIndex, angleThreshold)
+-- 查找最近的车辆并计算距离（不考虑车辆朝向）
+function vehicle_data.findLeadCar(currentCarIndex)
     if not ac.getCar(currentCarIndex) then
         return nil, 0
     end
     
     local currentCar = ac.getCar(currentCarIndex)
     local currentPosition = currentCar.position
-    local currentForward = currentCar.forward
     
-    if not currentPosition or not currentForward then
+    if not currentPosition then
         return nil, 0
     end
     
-    angleThreshold = angleThreshold or math.rad(45) -- 默认45度
     local minDistance = math.huge
-    local leadCarIndex = nil
+    local closestCarIndex = nil
     
+    -- 获取实际存在的车辆数量，避免不必要的循环
+    local maxCarIndex = 0
     for i = 0, 1000 do
-        if i ~= currentCarIndex and ac.getCar(i) and ac.getCar(i). isConnected then
+        if not ac.getCar(i) then
+            maxCarIndex = i
+            break
+        end
+    end
+    
+    for i = 0, maxCarIndex - 1 do
+        if i ~= currentCarIndex and ac.getCar(i) and ac.getCar(i).isConnected then
             local otherCar = ac.getCar(i)
             if otherCar and otherCar.position then
-                -- 计算两车之间的向量
-                local directionToOther = (otherCar.position - currentPosition):normalize()
+                -- 计算两车之间的距离
+                local distance = (otherCar.position - currentPosition):length()
                 
-                -- 检查是否在前方（角度小于阈值）
-                local dotProduct = currentForward:dot(directionToOther)
-                local angle = math.acos(math.clamp(dotProduct, -1, 1))
-                
-                if angle <= angleThreshold then
-                    -- 计算距离
-                    local distance = (otherCar.position - currentPosition):len()
-                    
-                    if distance < minDistance then
-                        minDistance = distance
-                        leadCarIndex = i
-                    end
+                if distance > 0 and distance < minDistance then  -- 确保距离大于0且小于当前最小距离
+                    minDistance = distance
+                    closestCarIndex = i
                 end
             end
         end
     end
     
-    if leadCarIndex then
-        return leadCarIndex, minDistance
+    if closestCarIndex then
+        return closestCarIndex, minDistance
     else
         return nil, 0
     end
