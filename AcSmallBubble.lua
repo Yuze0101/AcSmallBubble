@@ -34,7 +34,10 @@ for i = 0, 1000 do
         message = "", -- 当前消息
         timestamp = 0, -- 消息接收时间
         duration = 5, -- 显示消息的持续时间（秒）
-        active = false -- 气泡是否处于活动状态
+        active = false, -- 气泡是否处于活动状态
+        -- 添加模拟数据
+        mockMessage = "Hello from " .. (ac.getCar(i) and ac.getCar(i).driverName or "Unknown Driver") .. "!",
+        mockActive = true
     }
     driverData[i].driverName = ac.getCar(i).driverName
 end
@@ -46,6 +49,11 @@ function onSessionStart()
             break
         end
         driverData[i].driverName = ac.getCar(i).driverName
+        -- 为新车添加模拟消息
+        if not chatBubbles[i].mockMessage then
+            chatBubbles[i].mockMessage = "Hello from " .. (ac.getCar(i) and ac.getCar(i).driverName or "Unknown Driver") .. "!"
+            chatBubbles[i].mockActive = true
+        end
     end
 end
 
@@ -71,13 +79,13 @@ function renderBubbleFar()
     local carData = CurrentlyProcessedCar
     local bubble = chatBubbles[carData.index]
     
-    if not bubble or not bubble.active then
+    if not bubble or not (bubble.active or bubble.mockActive) then
         ui.dwriteTextAligned("", 28, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(1,1,1))
         return
     end
     
-    -- 检查消息是否应该继续显示
-    if os.clock() - bubble.timestamp > bubble.duration then
+    -- 检查消息是否应该继续显示（真实消息）
+    if bubble.active and os.clock() - bubble.timestamp > bubble.duration then
         bubble.nearFadeTarget = 0
         bubble.midFadeTarget = 0
         bubble.farFadeTarget = 0
@@ -86,8 +94,16 @@ function renderBubbleFar()
     ui.pushDWriteFont('Poppins:Fonts/Poppins-Medium.ttf;Weight=Medium')
     ui.beginOutline()
     
+    -- 渲染消息文本（优先显示真实消息，否则显示模拟消息）
+    local displayMessage = ""
+    if bubble.active and (os.clock() - bubble.timestamp <= bubble.duration) then
+        displayMessage = bubble.message
+    elseif bubble.mockActive then
+        displayMessage = bubble.mockMessage
+    end
+    
     -- 居中渲染消息文本
-    ui.dwriteTextAligned(bubble.message, 28, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(1,1,1))
+    ui.dwriteTextAligned(displayMessage, 28, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(1,1,1))
     
     ui.endOutline(0, 10)
     ui.popDWriteFont()
@@ -98,13 +114,13 @@ function renderBubbleMid()
     local carData = CurrentlyProcessedCar
     local bubble = chatBubbles[carData.index]
     
-    if not bubble or not bubble.active then
+    if not bubble or not (bubble.active or bubble.mockActive) then
         ui.dwriteTextAligned("", 28, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(1,1,1))
         return
     end
     
-    -- 检查消息是否应该继续显示
-    if os.clock() - bubble.timestamp > bubble.duration then
+    -- 检查消息是否应该继续显示（真实消息）
+    if bubble.active and os.clock() - bubble.timestamp > bubble.duration then
         bubble.nearFadeTarget = 0
         bubble.midFadeTarget = 0
         bubble.farFadeTarget = 0
@@ -113,8 +129,16 @@ function renderBubbleMid()
     ui.pushDWriteFont('Poppins:Fonts/Poppins-Medium.ttf;Weight=Medium')
     ui.beginOutline()
     
+    -- 渲染消息文本（优先显示真实消息，否则显示模拟消息）
+    local displayMessage = ""
+    if bubble.active and (os.clock() - bubble.timestamp <= bubble.duration) then
+        displayMessage = bubble.message
+    elseif bubble.mockActive then
+        displayMessage = bubble.mockMessage
+    end
+    
     -- 居中渲染消息文本
-    ui.dwriteTextAligned(bubble.message, 28, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(1,1,1))
+    ui.dwriteTextAligned(displayMessage, 28, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(1,1,1))
     
     ui.endOutline(0, 10)
     ui.popDWriteFont()
@@ -125,13 +149,13 @@ function renderBubbleNear()
     local carData = CurrentlyProcessedCar
     local bubble = chatBubbles[carData.index]
     
-    if not bubble or not bubble.active then
+    if not bubble or not (bubble.active or bubble.mockActive) then
         ui.dwriteTextAligned("", 28, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(1,1,1))
         return
     end
     
-    -- 检查消息是否应该继续显示
-    if os.clock() - bubble.timestamp > bubble.duration then
+    -- 检查消息是否应该继续显示（真实消息）
+    if bubble.active and os.clock() - bubble.timestamp > bubble.duration then
         bubble.nearFadeTarget = 0
         bubble.midFadeTarget = 0
         bubble.farFadeTarget = 0
@@ -140,8 +164,16 @@ function renderBubbleNear()
     ui.pushDWriteFont('Poppins:Fonts/Poppins-Medium.ttf;Weight=Medium')
     ui.beginOutline()
     
+    -- 渲染消息文本（优先显示真实消息，否则显示模拟消息）
+    local displayMessage = ""
+    if bubble.active and (os.clock() - bubble.timestamp <= bubble.duration) then
+        displayMessage = bubble.message
+    elseif bubble.mockActive then
+        displayMessage = bubble.mockMessage
+    end
+    
     -- 居中渲染消息文本
-    ui.dwriteTextAligned(bubble.message, 28, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(1,1,1))
+    ui.dwriteTextAligned(displayMessage, 28, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(1,1,1))
     
     ui.endOutline(0, 10)
     ui.popDWriteFont()
@@ -160,7 +192,7 @@ function renderChatBubble(carData)
         driverData[carData.index].lastCanvasUpdate = 0
     end
     
-    if driverData[carData.index].lastCanvasUpdate > 2*numberOfCars and driverData[carData.index].distanceToCamera < bubbleDistance and bubble.active then
+    if driverData[carData.index].lastCanvasUpdate > 2*numberOfCars and driverData[carData.index].distanceToCamera < bubbleDistance and (bubble.active or bubble.mockActive) then
         chatBubbles[carData.index].far:update(renderBubbleFar)
         chatBubbles[carData.index].mid:update(renderBubbleMid)
         chatBubbles[carData.index].near:update(renderBubbleNear)
@@ -187,19 +219,34 @@ function renderChatBubble(carData)
         if fadeScale >= nearRange then
             chatBubbles[carData.index].nearFadeTarget = 1
         else
-            chatBubbles[carData.index].nearFadeTarget = 0
+            -- 如果不是真实消息，则保持模拟消息的激活状态
+            if not (chatBubbles[carData.index].active and (os.clock() - chatBubbles[carData.index].timestamp <= chatBubbles[carData.index].duration)) then
+                chatBubbles[carData.index].nearFadeTarget = chatBubbles[carData.index].mockActive and 1 or 0
+            else
+                chatBubbles[carData.index].nearFadeTarget = 0
+            end
         end
         
         if fadeScale >= midRange and fadeScale <= nearRange then
             chatBubbles[carData.index].midFadeTarget = 1
         else
-            chatBubbles[carData.index].midFadeTarget = 0
+            -- 如果不是真实消息，则保持模拟消息的激活状态
+            if not (chatBubbles[carData.index].active and (os.clock() - chatBubbles[carData.index].timestamp <= chatBubbles[carData.index].duration)) then
+                chatBubbles[carData.index].midFadeTarget = chatBubbles[carData.index].mockActive and 1 or 0
+            else
+                chatBubbles[carData.index].midFadeTarget = 0
+            end
         end
         
         if fadeScale >= farRange and fadeScale <= midRange then
             chatBubbles[carData.index].farFadeTarget = 1
         else
-            chatBubbles[carData.index].farFadeTarget = 0
+            -- 如果不是真实消息，则保持模拟消息的激活状态
+            if not (chatBubbles[carData.index].active and (os.clock() - chatBubbles[carData.index].timestamp <= chatBubbles[carData.index].duration)) then
+                chatBubbles[carData.index].farFadeTarget = chatBubbles[carData.index].mockActive and 1 or 0
+            else
+                chatBubbles[carData.index].farFadeTarget = 0
+            end
         end
 
         -- 平滑过渡淡入淡出值
