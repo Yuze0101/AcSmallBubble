@@ -2,9 +2,9 @@ Sim = ac.getSim()
 
 -- 配置参数
 local bubbleDistance = 300 -- 米
-local nearRange = 0.8 -- 显示完整气泡
-local midRange = 0.55 -- 显示部分气泡
-local farRange = 0.3 -- 完全隐藏气泡
+local nearRange = 0.8      -- 显示完整气泡
+local midRange = 0.55      -- 显示部分气泡
+local farRange = 0.3       -- 完全隐藏气泡
 -- 配置结束
 
 local driverData = {}
@@ -31,12 +31,12 @@ for i = 0, 1000 do
         near = ui.ExtraCanvas(vec2(1000, 200), 1, render.AntialiasingMode.ExtraSharpCMAA),
         nearFadeCurrent = 0,
         nearFadeTarget = 0,
-        message = "", -- 当前消息
-        timestamp = 0, -- 消息接收时间
-        duration = 5, -- 显示消息的持续时间（秒）
+        message = "",   -- 当前消息
+        timestamp = 0,  -- 消息接收时间
+        duration = 5,   -- 显示消息的持续时间（秒）
         active = false, -- 气泡是否处于活动状态
         -- 添加模拟数据
-        mockMessage = "Hello from " .. (ac.getCar(i) and ac.getCar(i).driverName or "Unknown Driver") .. "!",
+        mockMessage = "Hello ,Mock message",
         mockActive = true
     }
     driverData[i].driverName = ac.getCar(i).driverName
@@ -51,7 +51,8 @@ function onSessionStart()
         driverData[i].driverName = ac.getCar(i).driverName
         -- 为新车添加模拟消息
         if not chatBubbles[i].mockMessage then
-            chatBubbles[i].mockMessage = "Hello from " .. (ac.getCar(i) and ac.getCar(i).driverName or "Unknown Driver") .. "!"
+            chatBubbles[i].mockMessage = "Hello from " ..
+            (ac.getCar(i) and ac.getCar(i).driverName or "Unknown Driver") .. "!"
             chatBubbles[i].mockActive = true
         end
     end
@@ -66,7 +67,7 @@ local function showChatBubble(message, senderCarIndex, senderSessionID)
         chatBubbles[senderCarIndex].message = message
         chatBubbles[senderCarIndex].timestamp = os.clock()
         chatBubbles[senderCarIndex].active = true
-        
+
         -- 设置淡入目标值以显示气泡
         chatBubbles[senderCarIndex].nearFadeTarget = 1
         chatBubbles[senderCarIndex].midFadeTarget = 1
@@ -78,22 +79,22 @@ end
 function renderBubbleFar()
     local carData = CurrentlyProcessedCar
     local bubble = chatBubbles[carData.index]
-    
+
     if not bubble or not (bubble.active or bubble.mockActive) then
-        ui.dwriteTextAligned("", 28, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(1,1,1))
+        ui.dwriteTextAligned("", 28, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(1, 1, 1))
         return
     end
-    
+
     -- 检查消息是否应该继续显示（真实消息）
     if bubble.active and os.clock() - bubble.timestamp > bubble.duration then
         bubble.nearFadeTarget = 0
         bubble.midFadeTarget = 0
         bubble.farFadeTarget = 0
     end
-    
+
     ui.pushDWriteFont('Poppins:Fonts/Poppins-Medium.ttf;Weight=Medium')
     ui.beginOutline()
-    
+
     -- 渲染消息文本（优先显示真实消息，否则显示模拟消息）
     local displayMessage = ""
     if bubble.active and (os.clock() - bubble.timestamp <= bubble.duration) then
@@ -101,10 +102,10 @@ function renderBubbleFar()
     elseif bubble.mockActive then
         displayMessage = bubble.mockMessage
     end
-    
+
     -- 居中渲染消息文本
-    ui.dwriteTextAligned(displayMessage, 28, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(1,1,1))
-    
+    ui.dwriteTextAligned(displayMessage, 28, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(1, 1, 1))
+
     ui.endOutline(0, 10)
     ui.popDWriteFont()
 end
@@ -113,22 +114,22 @@ end
 function renderBubbleMid()
     local carData = CurrentlyProcessedCar
     local bubble = chatBubbles[carData.index]
-    
+
     if not bubble or not (bubble.active or bubble.mockActive) then
-        ui.dwriteTextAligned("", 28, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(1,1,1))
+        ui.dwriteTextAligned("", 28, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(1, 1, 1))
         return
     end
-    
+
     -- 检查消息是否应该继续显示（真实消息）
     if bubble.active and os.clock() - bubble.timestamp > bubble.duration then
         bubble.nearFadeTarget = 0
         bubble.midFadeTarget = 0
         bubble.farFadeTarget = 0
     end
-    
+
     ui.pushDWriteFont('Poppins:Fonts/Poppins-Medium.ttf;Weight=Medium')
     ui.beginOutline()
-    
+
     -- 渲染消息文本（优先显示真实消息，否则显示模拟消息）
     local displayMessage = ""
     if bubble.active and (os.clock() - bubble.timestamp <= bubble.duration) then
@@ -136,10 +137,10 @@ function renderBubbleMid()
     elseif bubble.mockActive then
         displayMessage = bubble.mockMessage
     end
-    
+
     -- 居中渲染消息文本
-    ui.dwriteTextAligned(displayMessage, 28, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(1,1,1))
-    
+    ui.dwriteTextAligned(displayMessage, 28, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(1, 1, 1))
+
     ui.endOutline(0, 10)
     ui.popDWriteFont()
 end
@@ -148,22 +149,22 @@ end
 function renderBubbleNear()
     local carData = CurrentlyProcessedCar
     local bubble = chatBubbles[carData.index]
-    
+
     if not bubble or not (bubble.active or bubble.mockActive) then
-        ui.dwriteTextAligned("", 28, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(1,1,1))
+        ui.dwriteTextAligned("", 28, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(1, 1, 1))
         return
     end
-    
+
     -- 检查消息是否应该继续显示（真实消息）
     if bubble.active and os.clock() - bubble.timestamp > bubble.duration then
         bubble.nearFadeTarget = 0
         bubble.midFadeTarget = 0
         bubble.farFadeTarget = 0
     end
-    
+
     ui.pushDWriteFont('Poppins:Fonts/Poppins-Medium.ttf;Weight=Medium')
     ui.beginOutline()
-    
+
     -- 渲染消息文本（优先显示真实消息，否则显示模拟消息）
     local displayMessage = ""
     if bubble.active and (os.clock() - bubble.timestamp <= bubble.duration) then
@@ -171,10 +172,10 @@ function renderBubbleNear()
     elseif bubble.mockActive then
         displayMessage = bubble.mockMessage
     end
-    
+
     -- 居中渲染消息文本
-    ui.dwriteTextAligned(displayMessage, 28, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(1,1,1))
-    
+    ui.dwriteTextAligned(displayMessage, 28, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(1, 1, 1))
+
     ui.endOutline(0, 10)
     ui.popDWriteFont()
 end
@@ -183,16 +184,16 @@ end
 function renderChatBubble(carData)
     CurrentlyProcessedCar = carData
     local bubble = chatBubbles[carData.index]
-    
+
     -- 计算相机距离（根据FOV调整）
-    driverData[carData.index].distanceToCamera = (carData.distanceToCamera/2)*(Sim.cameraFOV/27)
-    
+    driverData[carData.index].distanceToCamera = (carData.distanceToCamera / 2) * (Sim.cameraFOV / 27)
+
     -- 如需要则更新画布（减少更新频率以提高性能）
     if not driverData[carData.index].lastCanvasUpdate then
         driverData[carData.index].lastCanvasUpdate = 0
     end
-    
-    if driverData[carData.index].lastCanvasUpdate > 2*numberOfCars and driverData[carData.index].distanceToCamera < bubbleDistance and (bubble.active or bubble.mockActive) then
+
+    if driverData[carData.index].lastCanvasUpdate > 2 * numberOfCars and driverData[carData.index].distanceToCamera < bubbleDistance and (bubble.active or bubble.mockActive) then
         chatBubbles[carData.index].far:update(renderBubbleFar)
         chatBubbles[carData.index].mid:update(renderBubbleMid)
         chatBubbles[carData.index].near:update(renderBubbleNear)
@@ -201,18 +202,27 @@ function renderChatBubble(carData)
 
     if driverData[carData.index].distanceToCamera < bubbleDistance then
         -- 计算缩放和淡化因子
-        sizeScale = math.clamp((((bubbleDistance)-(driverData[carData.index].distanceToCamera)) / (bubbleDistance))^0.9, 0.249, 1)
-        fadeScale = math.clamp(((math.max(bubbleDistance/carsInRangeMultiplierCurrent, driverData[carData.index].distanceToCamera+0.0001)-(driverData[carData.index].distanceToCamera)) / (bubbleDistance/carsInRangeMultiplierCurrent))^0.9, 0.249, 1)
+        sizeScale = math.clamp((((bubbleDistance) - (driverData[carData.index].distanceToCamera)) / (bubbleDistance)) ^
+        0.9, 0.249, 1)
+        fadeScale = math.clamp(
+        ((math.max(bubbleDistance / carsInRangeMultiplierCurrent, driverData[carData.index].distanceToCamera + 0.0001) - (driverData[carData.index].distanceToCamera)) / (bubbleDistance / carsInRangeMultiplierCurrent)) ^
+        0.9, 0.249, 1)
 
         -- 根据距离和淡入状态绘制气泡
         if chatBubbles[carData.index].farFadeCurrent > 0 then
-            ui.drawImage(chatBubbles[carData.index].far, vec2(1000-((sizeScale*0.5+0.5)*1000), 100-((sizeScale*0.5+0.5)*100)), vec2(((sizeScale*0.5+0.5)*1000),200), rgbm(1,1,1,chatBubbles[carData.index].farFadeCurrent))
+            ui.drawImage(chatBubbles[carData.index].far,
+                vec2(1000 - ((sizeScale * 0.5 + 0.5) * 1000), 100 - ((sizeScale * 0.5 + 0.5) * 100)),
+                vec2(((sizeScale * 0.5 + 0.5) * 1000), 200), rgbm(1, 1, 1, chatBubbles[carData.index].farFadeCurrent))
         end
         if chatBubbles[carData.index].midFadeCurrent > 0 then
-            ui.drawImage(chatBubbles[carData.index].mid, vec2(1000-((sizeScale*0.5+0.5)*1000), 100-((sizeScale*0.5+0.5)*100)), vec2(((sizeScale*0.5+0.5)*1000),200), rgbm(1,1,1,chatBubbles[carData.index].midFadeCurrent))
+            ui.drawImage(chatBubbles[carData.index].mid,
+                vec2(1000 - ((sizeScale * 0.5 + 0.5) * 1000), 100 - ((sizeScale * 0.5 + 0.5) * 100)),
+                vec2(((sizeScale * 0.5 + 0.5) * 1000), 200), rgbm(1, 1, 1, chatBubbles[carData.index].midFadeCurrent))
         end
         if chatBubbles[carData.index].nearFadeCurrent > 0 then
-            ui.drawImage(chatBubbles[carData.index].near, vec2(1000-((sizeScale*0.5+0.5)*1000), 100-((sizeScale*0.5+0.5)*100)), vec2(((sizeScale*0.5+0.5)*1000),200), rgbm(1,1,1,chatBubbles[carData.index].nearFadeCurrent))
+            ui.drawImage(chatBubbles[carData.index].near,
+                vec2(1000 - ((sizeScale * 0.5 + 0.5) * 1000), 100 - ((sizeScale * 0.5 + 0.5) * 100)),
+                vec2(((sizeScale * 0.5 + 0.5) * 1000), 200), rgbm(1, 1, 1, chatBubbles[carData.index].nearFadeCurrent))
         end
 
         -- 根据距离确定显示哪个画布
@@ -226,7 +236,7 @@ function renderChatBubble(carData)
                 chatBubbles[carData.index].nearFadeTarget = 0
             end
         end
-        
+
         if fadeScale >= midRange and fadeScale <= nearRange then
             chatBubbles[carData.index].midFadeTarget = 1
         else
@@ -237,7 +247,7 @@ function renderChatBubble(carData)
                 chatBubbles[carData.index].midFadeTarget = 0
             end
         end
-        
+
         if fadeScale >= farRange and fadeScale <= midRange then
             chatBubbles[carData.index].farFadeTarget = 1
         else
@@ -251,21 +261,27 @@ function renderChatBubble(carData)
 
         -- 平滑过渡淡入淡出值
         if chatBubbles[carData.index].nearFadeTarget > chatBubbles[carData.index].nearFadeCurrent then
-            chatBubbles[carData.index].nearFadeCurrent = math.clamp(chatBubbles[carData.index].nearFadeCurrent + globaldt*2, 0, 1)
+            chatBubbles[carData.index].nearFadeCurrent = math.clamp(
+            chatBubbles[carData.index].nearFadeCurrent + globaldt * 2, 0, 1)
         elseif chatBubbles[carData.index].nearFadeTarget < chatBubbles[carData.index].nearFadeCurrent then
-            chatBubbles[carData.index].nearFadeCurrent = math.clamp(chatBubbles[carData.index].nearFadeCurrent - globaldt, 0, 1)
+            chatBubbles[carData.index].nearFadeCurrent = math.clamp(
+            chatBubbles[carData.index].nearFadeCurrent - globaldt, 0, 1)
         end
 
         if chatBubbles[carData.index].midFadeTarget > chatBubbles[carData.index].midFadeCurrent then
-            chatBubbles[carData.index].midFadeCurrent = math.clamp(chatBubbles[carData.index].midFadeCurrent + globaldt*2, 0, 1)
+            chatBubbles[carData.index].midFadeCurrent = math.clamp(
+            chatBubbles[carData.index].midFadeCurrent + globaldt * 2, 0, 1)
         elseif chatBubbles[carData.index].midFadeTarget < chatBubbles[carData.index].midFadeCurrent then
-            chatBubbles[carData.index].midFadeCurrent = math.clamp(chatBubbles[carData.index].midFadeCurrent - globaldt, 0, 1)
+            chatBubbles[carData.index].midFadeCurrent = math.clamp(chatBubbles[carData.index].midFadeCurrent - globaldt,
+                0, 1)
         end
 
         if chatBubbles[carData.index].farFadeTarget > chatBubbles[carData.index].farFadeCurrent then
-            chatBubbles[carData.index].farFadeCurrent = math.clamp(chatBubbles[carData.index].farFadeCurrent + globaldt*2, 0, 1)
+            chatBubbles[carData.index].farFadeCurrent = math.clamp(
+            chatBubbles[carData.index].farFadeCurrent + globaldt * 2, 0, 1)
         elseif chatBubbles[carData.index].farFadeTarget < chatBubbles[carData.index].farFadeCurrent then
-            chatBubbles[carData.index].farFadeCurrent = math.clamp(chatBubbles[carData.index].farFadeCurrent - globaldt, 0, 1)
+            chatBubbles[carData.index].farFadeCurrent = math.clamp(chatBubbles[carData.index].farFadeCurrent - globaldt,
+                0, 1)
         end
     else
         -- 车辆太远，隐藏所有气泡
@@ -280,7 +296,6 @@ end
 
 -- 监听聊天消息
 ac.onChatMessage(function(message, senderCarIndex, senderSessionID)
-  
     showChatBubble(message, senderCarIndex, senderSessionID)
     -- 返回false以允许消息出现在标准聊天窗口中
     return false
@@ -299,10 +314,11 @@ function script.update(dt)
             break
         end
         if i ~= Sim.focusedCar and ac.getCar(i).isConnected and ac.getCar(i).distanceToCamera < bubbleDistance then
-            carsInRangeMultiplierCurrent = carsInRangeMultiplierCurrent + math.clamp(((bubbleDistance-(ac.getCar(i).distanceToCamera)) / bubbleDistance)^0.9, 0, 1)
+            carsInRangeMultiplierCurrent = carsInRangeMultiplierCurrent +
+            math.clamp(((bubbleDistance - (ac.getCar(i).distanceToCamera)) / bubbleDistance) ^ 0.9, 0, 1)
         end
     end
-    carsInRangeMultiplierCurrent = math.clamp(math.max(1, carsInRangeMultiplierCurrent/2), 1, 5)
+    carsInRangeMultiplierCurrent = math.clamp(math.max(1, carsInRangeMultiplierCurrent / 2), 1, 5)
     ac.debug("carsInRangeMultiplierCurrent", carsInRangeMultiplierCurrent)
 
     -- 更新lastCanvasUpdate计数器
@@ -318,7 +334,7 @@ function script.update(dt)
             bubble.nearFadeTarget = 0
             bubble.midFadeTarget = 0
             bubble.farFadeTarget = 0
-            
+
             -- 检查是否完全淡出
             if bubble.nearFadeCurrent <= 0.01 and bubble.midFadeCurrent <= 0.01 and bubble.farFadeCurrent <= 0.01 then
                 bubble.active = false
@@ -329,5 +345,6 @@ end
 
 -- 注册聊天气泡作为驾驶员标签覆盖层
 if Sim.driverNamesShown == true then
-    ui.onDriverNameTag(false, rgbm(1,1,1,0), renderChatBubble, {distanceMultiplier = math.ceil(bubbleDistance/10), tagSize = vec2(1000,200)})
+    ui.onDriverNameTag(false, rgbm(1, 1, 1, 0), renderChatBubble,
+        { distanceMultiplier = math.ceil(bubbleDistance / 10), tagSize = vec2(1000, 200) })
 end
