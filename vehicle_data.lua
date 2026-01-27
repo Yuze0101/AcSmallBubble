@@ -20,7 +20,9 @@ function vehicle_data.init(numberOfCars)
             timestamp = 0,  -- 消息接收时间
             duration = 5,   -- 显示消息的持续时间（秒）
             active = false, -- 气泡是否处于活动状态
-            gifPlayer = ui.GIFPlayer('Images/amd.gif') -- 创建GIFPlayer实例
+            gifPlayer = ui.GIFPlayer('Images/amd.gif'), -- 创建GIFPlayer实例
+            lastHitTime = 0, -- 上次撞击时间
+            hitAnimationProgress = 0 -- 撞击动画进度 (0-1)
         }
         driverData[i].driverName = ac.getCar(i):driverName()
     end

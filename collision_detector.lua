@@ -1,21 +1,6 @@
 -- 碰撞检测模块
 local collision_detector = {}
 
---- 显示碰撞提示聊天气泡
--- @param carIndex 发生碰撞的车辆索引
--- @param chatBubbles 聊天气泡数据表
-local function showCollisionBubble(carIndex, chatBubbles)
-    if chatBubbles[carIndex] then
-        -- 更新消息内容和时间戳
-        chatBubbles[carIndex].message = "碰撞! Collision detected!"
-        chatBubbles[carIndex].timestamp = os.clock()
-        chatBubbles[carIndex].active = true
-
-        -- 设置淡入目标值以显示气泡
-        chatBubbles[carIndex].fadeTarget = 1
-    end
-end
-
 -- 为焦点车辆（玩家车辆）设置碰撞检测
 function collision_detector.setupPlayerCollisionDetection(chatBubbles, sim)
     local playerCarIndex = sim.focusedCar or 0  -- 使用当前焦点车辆，如果获取不到则默认为0号车
@@ -24,8 +9,21 @@ function collision_detector.setupPlayerCollisionDetection(chatBubbles, sim)
         -- 当焦点车辆发生碰撞时执行
         print("焦点车辆发生了碰撞!")
         
-        -- 显示碰撞提示气泡
-        showCollisionBubble(carIndex, chatBubbles)
+        -- 触发撞击动画效果
+        if chatBubbles[carIndex] then
+            local currentTime = os.clock()
+            -- 检查上次撞击时间，确保不会连续触发
+            if currentTime - (chatBubbles[carIndex].lastHitTime or 0) > 0.5 then  -- 至少间隔0.5秒
+                chatBubbles[carIndex].lastHitTime = currentTime
+                chatBubbles[carIndex].hitAnimationProgress = 1  -- 开始动画
+                
+                -- 更新消息内容和时间戳
+                chatBubbles[carIndex].message = "碰撞! Collision detected!"
+                chatBubbles[carIndex].timestamp = currentTime
+                chatBubbles[carIndex].active = true
+                chatBubbles[carIndex].fadeTarget = 1
+            end
+        end
         
         -- 获取车辆数据以进行更详细的分析
         local car = ac.getCar(carIndex)
@@ -44,8 +42,21 @@ function collision_detector.setupAllCarsCollisionDetection(chatBubbles)
     local collisionDisposable = ac.onCarCollision(-1, function(carIndex)
         print("车辆 " .. carIndex .. " 发生了碰撞!")
         
-        -- 显示碰撞提示气泡
-        showCollisionBubble(carIndex, chatBubbles)
+        -- 触发撞击动画效果
+        if chatBubbles[carIndex] then
+            local currentTime = os.clock()
+            -- 检查上次撞击时间，确保不会连续触发
+            if currentTime - (chatBubbles[carIndex].lastHitTime or 0) > 0.2 then  -- 至少间隔0.5秒
+                chatBubbles[carIndex].lastHitTime = currentTime
+                chatBubbles[carIndex].hitAnimationProgress = 1  -- 开始动画
+                
+                -- 更新消息内容和时间戳
+                chatBubbles[carIndex].message = "碰撞! Collision detected!"
+                chatBubbles[carIndex].timestamp = currentTime
+                chatBubbles[carIndex].active = true
+                chatBubbles[carIndex].fadeTarget = 1
+            end
+        end
         
         -- 获取车辆数据以进行更详细的分析
         local car = ac.getCar(carIndex)

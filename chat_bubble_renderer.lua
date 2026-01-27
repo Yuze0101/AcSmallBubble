@@ -33,25 +33,33 @@ function chat_bubble_renderer.renderBubble(CurrentlyProcessedCar, chatBubbles, d
 
     ui.endOutline(0, 6)
 
-    -- 渲染前车距离提示文字（仅当前车存在时）
+    -- 渲染距离相关文本（仅当前车存在时）
     ui.beginOutline()
     local leadCarIndex, distance = vehicle_data.findLeadCar(carData.index)
-    local distanceText = ""
+    
+    -- 根据距离显示不同文本（分三行显示）
+    local closeText = ""      -- ≤ 5m
+    local mediumText = ""     -- 5m ~ 10m
+    local farText = ""        -- > 10m
+    
     if leadCarIndex and distance > 0 then
-        -- 根据距离显示不同文本
         if distance <= 5 then
-            distanceText = "Oh！！！"
-        elseif distance <= 10 then
-            distanceText = "哈压库！哈压库！"
-        else
-            distanceText = "杂鱼~杂鱼"
+            closeText = "Oh！！！"
+        elseif distance > 5 and distance <= 10 then
+            mediumText = "哈压库！哈压库！"
+        elseif distance > 10 then
+            farText = "杂鱼~杂鱼"
         end
     else
-        -- 如果没有前车，也显示默认文本
-        distanceText = "杂鱼~杂鱼"
+        -- 如果没有前车，显示默认文本（远处）
+        farText = "杂鱼~杂鱼"
     end
-    ui.dwriteTextAligned(distanceText, 42, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 85), false,
-    rgb(0.7, 0.7, 0.7))
+    
+    -- 显示三行文本（只有一行有内容，其他为空字符串）
+    ui.dwriteTextAligned(closeText, 42, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 40), false, rgb(1, 0, 0))
+    ui.dwriteTextAligned(mediumText, 42, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 40), false, rgb(1, 1, 0))
+    ui.dwriteTextAligned(farText, 42, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 40), false, rgb(0, 1, 0))
+    
     ui.endOutline(0, 4)
 
     -- 使用预创建的GIFPlayer绘制左侧圆形AMD图标，使用 Images/amd.gif
@@ -73,22 +81,33 @@ function chat_bubble_renderer.renderBubble(CurrentlyProcessedCar, chatBubbles, d
     -- 绘制右侧圆形图像，根据与其他车辆的距离显示不同图像
     local avatarCenterX = 750 -- 在文本右边放置圆形图像
     local avatarCenterY = 140
-    local avatarRadius = 65
-
-    -- 计算头像的左上角和右下角坐标
-    local topLeftAvatar = vec2(avatarCenterX - avatarRadius, avatarCenterY - avatarRadius)
-    local bottomRightAvatar = vec2(avatarCenterX + avatarRadius, avatarCenterY + avatarRadius)
+    local avatarRadius = 125
 
     -- 根据距离选择要显示的图像
     local imageToDisplay = 'Images/A.png' -- 默认显示图像A（距离大于15米）
     if distance and distance <= 5 then
         imageToDisplay = 'Images/C.png' -- 距离5米以内显示图像C
-    elseif distance and distance <= 10 then
+    elseif distance and distance <= 15 then
         imageToDisplay = 'Images/B.png' -- 距离5-15米显示图像B
     end
 
+    -- 计算撞击动画的缩放系数
+    local hitScale = 1.0
+    if bubble and bubble.hitAnimationProgress and bubble.hitAnimationProgress > 0 then
+        -- 使用贝塞尔曲线或正弦函数使动画更平滑
+        -- 从1倍放大到1.3倍再回到1倍
+        local progress = bubble.hitAnimationProgress
+        local scaleIncrease = 0.3 * (1 - math.abs(progress * 2 - 1)) -- 形成菱形波形，产生放大再缩小的效果
+        hitScale = 1.0 + scaleIncrease
+    end
+
+    -- 根据撞击动画调整圆形图像的大小
+    local scaledRadius = avatarRadius * hitScale
+    local topLeftAvatar = vec2(avatarCenterX - scaledRadius, avatarCenterY - scaledRadius)
+    local bottomRightAvatar = vec2(avatarCenterX + scaledRadius, avatarCenterY + scaledRadius)
+
     -- 使用drawImageRounded绘制圆形图像，圆角半径等于图像半径实现圆形效果
-    ui.drawImageRounded(imageToDisplay, topLeftAvatar, bottomRightAvatar, rgbm(1, 1, 1, 1), nil, nil, avatarRadius,
+    ui.drawImageRounded(imageToDisplay, topLeftAvatar, bottomRightAvatar, rgbm(1, 1, 1, 1), nil, nil, scaledRadius,
         ui.CornerFlags.All)
 
     ui.popDWriteFont()
@@ -103,6 +122,31 @@ function chat_bubble_renderer.renderChatBubble(carData, driverData, chatBubbles,
 
     -- 计算相机距离（根据FOV调整）
     driverData[carData.index].distanceToCamera = (carData.distanceToCamera / 2) * (sim.cameraFOV / 27)
+
+    -- 检测距离阈值跨越以触发动画
+    local _, currentDistance = vehicle_data.findLeadCar(carData.index)
+    if currentDistance and currentDistance > 0 then
+        -- 检查是否跨越了5m、10m或15m的阈值
+        local prevDistance = driverData[carData.index].prevDistance or 0
+        local thresholds = {5, 10, 15}  -- 阈值列表
+        
+        for _, threshold in ipairs(thresholds) do
+            -- 检查是否跨越了当前阈值
+            if (prevDistance <= threshold and currentDistance > threshold) or 
+               (prevDistance > threshold and currentDistance <= threshold) then
+                -- 检查上次触发时间，防止动画过于频繁
+                local currentTime = os.clock()
+                if currentTime - (bubble.lastThresholdTime or 0) > 0.5 then
+                    bubble.lastThresholdTime = currentTime
+                    bubble.hitAnimationProgress = 1  -- 开始动画
+                    break  -- 只触发一次动画
+                end
+            end
+        end
+        
+        -- 更新保存的距离值
+        driverData[carData.index].prevDistance = currentDistance
+    end
 
     -- 如需要则更新画布（基于时间的更新频率以提高性能）
     if not driverData[carData.index].lastCanvasUpdateTime then

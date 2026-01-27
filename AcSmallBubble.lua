@@ -66,14 +66,6 @@ function script.update(dt)
     carsInRangeMultiplierCurrent = vehicle_data.calculateCarsInRangeMultiplier(Sim, bubbleDistance, chatBubbles)
     ac.debug("carsInRangeMultiplierCurrent", carsInRangeMultiplierCurrent)
 
-    -- 更新lastCanvasUpdate计数器
-    for i = 0, numberOfCars - 1 do
-        if driverData[i] then
-            -- 增加一个基于时间的更新计数器，而不是简单的递增
-            driverData[i].lastCanvasUpdateTime = (driverData[i].lastCanvasUpdateTime or 0) + dt
-        end
-    end
-
     -- 检查是否有活动气泡需要停用
     for i, bubble in pairs(chatBubbles) do
         if bubble.active and os.clock() - bubble.timestamp > bubble.duration then
@@ -83,6 +75,20 @@ function script.update(dt)
             if bubble.fadeCurrent <= 0.01 then
                 bubble.active = false
             end
+        end
+        
+        -- 更新撞击动画进度
+        if bubble.hitAnimationProgress > 0 then
+            bubble.hitAnimationProgress = math.max(0, bubble.hitAnimationProgress - dt / 0.3)  -- 0.3秒内完成动画
+        end
+    end
+    
+
+    -- 更新lastCanvasUpdate计数器
+    for i = 0, numberOfCars - 1 do
+        if driverData[i] then
+            -- 增加一个基于时间的更新计数器，而不是简单的递增
+            driverData[i].lastCanvasUpdateTime = (driverData[i].lastCanvasUpdateTime or 0) + dt
         end
     end
 end
