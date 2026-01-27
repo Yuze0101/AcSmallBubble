@@ -28,8 +28,7 @@ function chat_bubble_renderer.renderBubble(CurrentlyProcessedCar, chatBubbles, d
 
     local driverName = driverData[carData.index] and driverData[carData.index].driverName or "Unknown Driver"
 
-
-    ui.dwriteTextAligned(driverName, 36, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 60), false,
+    ui.dwriteTextAligned(driverName, 56, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 60), false,
         rgb(0.9, 0.9, 0.9))
 
     ui.endOutline(0, 6)
@@ -41,7 +40,7 @@ function chat_bubble_renderer.renderBubble(CurrentlyProcessedCar, chatBubbles, d
     if leadCarIndex and distance > 0 then
         distanceText = string.format("%.1f m", distance)
     end
-    ui.dwriteTextAligned(distanceText, 32, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 85), false,
+    ui.dwriteTextAligned(distanceText, 42, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 85), false,
         rgb(0.7, 0.7, 0.7))
     ui.endOutline(0, 4)
 
