@@ -6,7 +6,7 @@ function vehicle_data.init(numberOfCars)
     local driverData = {}
     local chatBubbles = {}
 
-    for i = 0, 1000 do
+    for i = 0, 100 do
         if not ac.getCar(i) then
             break
         end
@@ -20,9 +20,7 @@ function vehicle_data.init(numberOfCars)
             timestamp = 0,  -- 消息接收时间
             duration = 5,   -- 显示消息的持续时间（秒）
             active = false, -- 气泡是否处于活动状态
-            -- 添加模拟数据
-            mockMessage = "Hello ,Mock message",
-            mockActive = true
+            gifPlayer = ui.GIFPlayer('Images/amd.gif') -- 创建GIFPlayer实例
         }
         driverData[i].driverName = ac.getCar(i):driverName()
     end

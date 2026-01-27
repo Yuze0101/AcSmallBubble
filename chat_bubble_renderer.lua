@@ -7,38 +7,33 @@ function chat_bubble_renderer.renderBubble(CurrentlyProcessedCar, chatBubbles, d
     local carData = CurrentlyProcessedCar
     local bubble = chatBubbles[carData.index]
 
-    if not bubble or not (bubble.active or bubble.mockActive) then
-        -- 如果没有气泡或气泡未激活，绘制空白画布
-        ui.dwriteTextAligned("", 56, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 30), false, rgb(0, 0, 0, 0))
-        return
-    end
-
     ui.pushDWriteFont('Poppins:Fonts/Poppins-Medium.ttf;Weight=Medium')
     ui.beginOutline()
 
-    -- 渲染消息文本（优先显示真实消息，否则显示模拟消息）
+    -- 渲染消息文本（只有在气泡活跃时才显示）
     local displayMessage = ""
-    if bubble.active and (os.clock() - bubble.timestamp <= bubble.duration) then
+    if bubble and bubble.active and (os.clock() - bubble.timestamp <= bubble.duration) then
         displayMessage = bubble.message
-    elseif bubble.mockActive then
-        displayMessage = bubble.mockMessage
     end
 
     -- 居中渲染消息文本
-    ui.dwriteTextAligned(displayMessage, 56, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 80), false, rgb(1, 1, 1))
+    ui.dwriteTextAligned(displayMessage, 56, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 80), false,
+        rgb(1, 1, 1))
 
     ui.endOutline(0, 10)
-    
+
     -- 渲染车手名字
     ui.pushDWriteFont('Poppins:Fonts/Poppins-Regular.ttf')
     ui.beginOutline()
-    
+
     local driverName = driverData[carData.index] and driverData[carData.index].driverName or "Unknown Driver"
-   
-    ui.dwriteTextAligned(driverName, 46, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 60), false, rgb(0.9, 0.9, 0.9))
-    
+
+
+    ui.dwriteTextAligned(driverName, 36, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 60), false,
+        rgb(0.9, 0.9, 0.9))
+
     ui.endOutline(0, 6)
-    
+
     -- 渲染前车距离（仅当前车存在时）
     ui.beginOutline()
     local leadCarIndex, distance = vehicle_data.findLeadCar(carData.index)
@@ -46,20 +41,38 @@ function chat_bubble_renderer.renderBubble(CurrentlyProcessedCar, chatBubbles, d
     if leadCarIndex and distance > 0 then
         distanceText = string.format("%.1f m", distance)
     end
-    ui.dwriteTextAligned(distanceText, 42, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 85), false, rgb(0.7, 0.7, 0.7))
+    ui.dwriteTextAligned(distanceText, 32, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 85), false,
+        rgb(0.7, 0.7, 0.7))
     ui.endOutline(0, 4)
-    
-    -- 绘制圆形头像占位符，使用 Images/rust.jpg 图像
-    local avatarCenterX = 750 -- 在文本左边放置圆形头像
+
+    -- 使用预创建的GIFPlayer绘制左侧圆形AMD图标，使用 Images/amd.gif
+    local amdCenterX = 250 -- 左侧位置
+    local amdCenterY = 140
+    local amdRadius = 65
+
+    -- 计算AMD图标的左上角和右下角坐标
+    local topLeftAmd = vec2(amdCenterX - amdRadius, amdCenterY - amdRadius)
+    local bottomRightAmd = vec2(amdCenterX + amdRadius, amdCenterY + amdRadius)
+
+    -- 使用预创建的GIFPlayer实例并绘制圆形GIF动画
+    if bubble and bubble.gifPlayer then
+        -- 使用drawImageRounded绘制圆形图像，圆角半径等于图像半径实现圆形效果
+        ui.drawImageRounded(bubble.gifPlayer, topLeftAmd, bottomRightAmd, rgbm(1, 1, 1, 1), nil, nil, amdRadius,
+            ui.CornerFlags.All)
+    end
+
+    -- 绘制右侧圆形头像占位符，使用 Images/rust.jpg 图像
+    local avatarCenterX = 750 -- 在文本右边放置圆形头像
     local avatarCenterY = 140
     local avatarRadius = 65
-    
+
     -- 计算头像的左上角和右下角坐标
-    local topLeft = vec2(avatarCenterX - avatarRadius, avatarCenterY - avatarRadius)
-    local bottomRight = vec2(avatarCenterX + avatarRadius, avatarCenterY + avatarRadius)
-    
-    -- 使用圆形剪切蒙版绘制图像
-    ui.drawImage('Images/rust.jpg', topLeft, bottomRight, rgbm(1, 1, 1, 1))
+    local topLeftAvatar = vec2(avatarCenterX - avatarRadius, avatarCenterY - avatarRadius)
+    local bottomRightAvatar = vec2(avatarCenterX + avatarRadius, avatarCenterY + avatarRadius)
+
+    -- 使用drawImageRounded绘制圆形图像，圆角半径等于图像半径实现圆形效果
+    ui.drawImageRounded('Images/rust.jpg', topLeftAvatar, bottomRightAvatar, rgbm(1, 1, 1, 1), nil, nil, avatarRadius,
+        ui.CornerFlags.All)
 
     ui.popDWriteFont()
     ui.popDWriteFont()
@@ -73,14 +86,19 @@ function chat_bubble_renderer.renderChatBubble(carData, driverData, chatBubbles,
     -- 计算相机距离（根据FOV调整）
     driverData[carData.index].distanceToCamera = (carData.distanceToCamera / 2) * (sim.cameraFOV / 27)
 
-    -- 如需要则更新画布（减少更新频率以提高性能）
-    if not driverData[carData.index].lastCanvasUpdate then
-        driverData[carData.index].lastCanvasUpdate = 0
+    -- 如需要则更新画布（基于时间的更新频率以提高性能）
+    if not driverData[carData.index].lastCanvasUpdateTime then
+        driverData[carData.index].lastCanvasUpdateTime = 0
     end
 
-    if driverData[carData.index].lastCanvasUpdate > 2 * #chatBubbles and driverData[carData.index].distanceToCamera < bubbleDistance and (bubble.active or bubble.mockActive) then
-        chatBubbles[carData.index].canvas:update(function() chat_bubble_renderer.renderBubble(CurrentlyProcessedCar, chatBubbles, driverData) end)
-        driverData[carData.index].lastCanvasUpdate = 0
+    -- 每隔一定时间更新一次画布，而不是使用车辆数量作为阈值
+    local updateTimeThreshold = 1.0 / 30  -- 目标更新频率为30 FPS
+    if driverData[carData.index].lastCanvasUpdateTime > updateTimeThreshold and driverData[carData.index].distanceToCamera < bubbleDistance then
+        chatBubbles[carData.index].canvas:update(function()
+            chat_bubble_renderer.renderBubble(CurrentlyProcessedCar,
+                chatBubbles, driverData)
+        end)
+        driverData[carData.index].lastCanvasUpdateTime = 0
     end
 
     if driverData[carData.index].distanceToCamera < bubbleDistance then
@@ -102,9 +120,9 @@ function chat_bubble_renderer.renderChatBubble(carData, driverData, chatBubbles,
         if fadeScale >= nearRange then
             chatBubbles[carData.index].fadeTarget = 1
         else
-            -- 如果不是真实消息，则保持模拟消息的激活状态
-            if not (chatBubbles[carData.index].active and (os.clock() - chatBubbles[carData.index].timestamp <= chatBubbles[carData.index].duration)) then
-                chatBubbles[carData.index].fadeTarget = chatBubbles[carData.index].mockActive and 1 or 0
+            -- 如果是活跃的真实消息，则显示气泡
+            if bubble and bubble.active and (os.clock() - bubble.timestamp <= bubble.duration) then
+                chatBubbles[carData.index].fadeTarget = 1
             else
                 chatBubbles[carData.index].fadeTarget = 0
             end

@@ -19,6 +19,9 @@ local numberOfCars = 0
 local globaldt = 0.016
 local globalTimer = 0
 local carsInRangeMultiplierCurrent = 1
+local fpsCounter = 0
+local fpsUpdateInterval = 0  -- 控制更新频率的时间间隔（秒）
+local fpsTarget = 30         -- 目标更新帧率
 
 -- 初始化车辆数据
 driverData, chatBubbles, numberOfCars = vehicle_data.init(numberOfCars)
@@ -39,9 +42,7 @@ local function showChatBubble(message, senderCarIndex, senderSessionID)
         chatBubbles[senderCarIndex].active = true
 
         -- 设置淡入目标值以显示气泡
-        chatBubbles[senderCarIndex].nearFadeTarget = 1
-        chatBubbles[senderCarIndex].midFadeTarget = 1
-        chatBubbles[senderCarIndex].farFadeTarget = 1
+        chatBubbles[senderCarIndex].fadeTarget = 1
     end
 end
 
@@ -58,6 +59,9 @@ function script.update(dt)
 
     Sim = ac.getSim()
 
+    -- 根据目标帧率计算更新间隔
+    fpsUpdateInterval = 1.0 / fpsTarget
+
     -- 根据范围内的车辆数量计算乘数
     carsInRangeMultiplierCurrent = vehicle_data.calculateCarsInRangeMultiplier(Sim, bubbleDistance, chatBubbles)
     ac.debug("carsInRangeMultiplierCurrent", carsInRangeMultiplierCurrent)
@@ -65,19 +69,18 @@ function script.update(dt)
     -- 更新lastCanvasUpdate计数器
     for i = 0, numberOfCars - 1 do
         if driverData[i] then
-            driverData[i].lastCanvasUpdate = (driverData[i].lastCanvasUpdate or 0) + 1
+            -- 增加一个基于时间的更新计数器，而不是简单的递增
+            driverData[i].lastCanvasUpdateTime = (driverData[i].lastCanvasUpdateTime or 0) + dt
         end
     end
 
     -- 检查是否有活动气泡需要停用
     for i, bubble in pairs(chatBubbles) do
         if bubble.active and os.clock() - bubble.timestamp > bubble.duration then
-            bubble.nearFadeTarget = 0
-            bubble.midFadeTarget = 0
-            bubble.farFadeTarget = 0
+            bubble.fadeTarget = 0
 
             -- 检查是否完全淡出
-            if bubble.nearFadeCurrent <= 0.01 and bubble.midFadeCurrent <= 0.01 and bubble.farFadeCurrent <= 0.01 then
+            if bubble.fadeCurrent <= 0.01 then
                 bubble.active = false
             end
         end

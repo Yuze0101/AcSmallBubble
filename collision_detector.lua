@@ -12,9 +12,7 @@ local function showCollisionBubble(carIndex, chatBubbles)
         chatBubbles[carIndex].active = true
 
         -- 设置淡入目标值以显示气泡
-        chatBubbles[carIndex].nearFadeTarget = 1
-        chatBubbles[carIndex].midFadeTarget = 1
-        chatBubbles[carIndex].farFadeTarget = 1
+        chatBubbles[carIndex].fadeTarget = 1
     end
 end
 
