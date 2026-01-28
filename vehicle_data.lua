@@ -43,22 +43,6 @@ function vehicle_data.onSessionStart(driverData, chatBubbles)
     end
 end
 
--- 计算车辆到相机的距离
-function vehicle_data.calculateDistanceToCamera(carData, sim)
-    return (carData.distanceToCamera / 2) * (sim.cameraFOV / 27)
-end
-
--- 计算范围内车辆的数量乘数
-function vehicle_data.calculateCarsInRangeMultiplier(sim, bubbleDistance, chatBubbles)
-    local carsInRangeMultiplierCurrent = 0
-    for i, car in ac.iterateCars() do
-        if i ~= sim.focusedCar and car.isConnected and car.distanceToCamera < bubbleDistance then
-            carsInRangeMultiplierCurrent = carsInRangeMultiplierCurrent +
-            math.clamp(((bubbleDistance - (car.distanceToCamera)) / bubbleDistance) ^ 0.9, 0, 1)
-        end
-    end
-    return math.clamp(math.max(1, carsInRangeMultiplierCurrent / 2), 1, 5)
-end
 
 -- 查找最近的车辆并计算距离（不考虑车辆朝向）
 function vehicle_data.findLeadCar(currentCarIndex)

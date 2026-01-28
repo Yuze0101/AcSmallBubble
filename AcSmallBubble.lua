@@ -22,7 +22,6 @@ local driverData = {}
 local chatBubbles = {}
 local globaldt = 0.016
 local globalTimer = 0
-local carsInRangeMultiplierCurrent = 1
 local fpsCounter = 0
 local fpsUpdateInterval = 0               -- 控制更新频率的时间间隔（秒）
 local fpsTarget = config.render.fpsTarget -- 目标更新帧率
@@ -66,9 +65,6 @@ function script.update(dt)
     -- 根据目标帧率计算更新间隔
     fpsUpdateInterval = 1.0 / fpsTarget
 
-    -- 根据范围内的车辆数量计算乘数
-    carsInRangeMultiplierCurrent = vehicle_data.calculateCarsInRangeMultiplier(Sim, bubbleDistance, chatBubbles)
-    ac.debug("carsInRangeMultiplierCurrent", carsInRangeMultiplierCurrent)
 
     -- 检查是否有活动气泡需要停用
     for i, bubble in pairs(chatBubbles) do
