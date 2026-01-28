@@ -25,8 +25,8 @@ local globaldt = 0.016
 local globalTimer = 0
 local carsInRangeMultiplierCurrent = 1
 local fpsCounter = 0
-local fpsUpdateInterval = 0  -- 控制更新频率的时间间隔（秒）
-local fpsTarget = config.render.fpsTarget         -- 目标更新帧率
+local fpsUpdateInterval = 0               -- 控制更新频率的时间间隔（秒）
+local fpsTarget = config.render.fpsTarget -- 目标更新帧率
 
 -- 初始化车辆数据
 driverData, chatBubbles, numberOfCars = vehicle_data.init(numberOfCars)
@@ -48,11 +48,6 @@ local function showChatBubble(message, senderCarIndex, senderSessionID)
 
         -- 设置淡入目标值以显示气泡
         chatBubbles[senderCarIndex].fadeTarget = 1
-        
-        -- 播放聊天通知音效（如果音频系统可用）
-        if audio_initialized then
-            audio_manager.play_chat_notification(senderCarIndex)
-        end
     end
 end
 
@@ -86,13 +81,13 @@ function script.update(dt)
                 bubble.active = false
             end
         end
-        
+
         -- 更新撞击动画进度
         if bubble.hitAnimationProgress > 0 then
-            bubble.hitAnimationProgress = math.max(0, bubble.hitAnimationProgress - dt / config.animation.duration)  -- 0.3秒内完成动画
+            bubble.hitAnimationProgress = math.max(0, bubble.hitAnimationProgress - dt / config.animation.duration) -- 0.3秒内完成动画
         end
     end
-    
+
 
     -- 更新lastCanvasUpdate计数器
     for i = 0, numberOfCars - 1 do
@@ -100,11 +95,6 @@ function script.update(dt)
             -- 增加一个基于时间的更新计数器，而不是简单的递增
             driverData[i].lastCanvasUpdateTime = (driverData[i].lastCanvasUpdateTime or 0) + dt
         end
-    end
-    
-    -- 更新音频事件位置
-    if audio_initialized then
-        audio_manager.update_positions(Sim)
     end
 end
 
