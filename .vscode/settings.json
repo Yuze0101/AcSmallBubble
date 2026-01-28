@@ -1,0 +1,6 @@
+{
+  "Lua.workspace.library": [
+    "${workspaceFolder}/lua-sdk"
+  ],
+  "Lua.workspace.checkThirdParty": false
+}
