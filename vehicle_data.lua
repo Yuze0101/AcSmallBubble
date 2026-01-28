@@ -43,6 +43,45 @@ function vehicle_data.onSessionStart(driverData, chatBubbles)
     end
 end
 
+-- 安全获取车辆数据的辅助函数
+function vehicle_data.getDriverDataOrNil(driverData, index)
+    if index == nil then
+        return {}
+    end
+    return driverData[index] or {}
+end
+
+-- 安全获取聊天气泡数据的辅助函数
+function vehicle_data.getChatBubbleOrNil(chatBubbles, index)
+    if index == nil then
+        return {
+            canvas = ui.ExtraCanvas(vec2(1200, 240), 1, render.AntialiasingMode.ExtraSharpCMAA),
+            fadeCurrent = 0,
+            fadeTarget = 0,
+            message = "",
+            timestamp = 0,
+            duration = config.bubble.duration,
+            active = false,
+            gifPlayer = ui.GIFPlayer(config.images.AMD),
+            lastHitTime = 0,
+            hitAnimationProgress = 0
+        }
+    end
+    
+    return chatBubbles[index] or {
+        canvas = ui.ExtraCanvas(vec2(1200, 240), 1, render.AntialiasingMode.ExtraSharpCMAA),
+        fadeCurrent = 0,
+        fadeTarget = 0,
+        message = "",
+        timestamp = 0,
+        duration = config.bubble.duration,
+        active = false,
+        gifPlayer = ui.GIFPlayer(config.images.AMD),
+        lastHitTime = 0,
+        hitAnimationProgress = 0
+    }
+end
+
 
 -- 查找最近的车辆并计算距离（不考虑车辆朝向）
 function vehicle_data.findLeadCar(currentCarIndex)

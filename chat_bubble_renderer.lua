@@ -6,7 +6,7 @@ local config = require('config')
 -- 渲染聊天气泡
 function chat_bubble_renderer.renderBubble(CurrentlyProcessedCar, chatBubbles, driverData)
     local carData = CurrentlyProcessedCar
-    local bubble = chatBubbles[carData.index]
+    local bubble = vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index)
 
     ui.pushDWriteFont('Poppins:Fonts/Poppins-Medium.ttf;Weight=Medium')
     ui.beginOutline()
@@ -27,7 +27,7 @@ function chat_bubble_renderer.renderBubble(CurrentlyProcessedCar, chatBubbles, d
     ui.pushDWriteFont('Poppins:Fonts/Poppins-Regular.ttf')
     ui.beginOutline()
 
-    local driverName = driverData[carData.index] and driverData[carData.index].driverName or "Unknown Driver"
+    local driverName = vehicle_data.getDriverDataOrNil(driverData, carData.index).driverName or "Unknown Driver"
 
     ui.dwriteTextAligned(driverName, 56, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 60), false,
         rgb(0.9, 0.9, 0.9))
@@ -117,10 +117,11 @@ end
 
 -- 计算缩放和淡化因子的辅助函数
 local function calculateScaleAndFade(driverData, carIndex, bubbleDistance)
+    local driverDataForCar = vehicle_data.getDriverDataOrNil(driverData, carIndex)
     local sizeScale = math.clamp(
-        (((bubbleDistance) - (driverData[carIndex].distanceToCamera)) / (bubbleDistance)) ^ 0.9, 0.249, 1)
+        (((bubbleDistance) - (driverDataForCar.distanceToCamera)) / (bubbleDistance)) ^ 0.9, 0.249, 1)
     local fadeScale = math.clamp(
-        ((math.max(bubbleDistance, driverData[carIndex].distanceToCamera + 0.0001) - (driverData[carIndex].distanceToCamera)) / (bubbleDistance)) ^
+        ((math.max(bubbleDistance, driverDataForCar.distanceToCamera + 0.0001) - (driverDataForCar.distanceToCamera)) / (bubbleDistance)) ^
         0.9, 0.249, 1)
 
     return sizeScale, fadeScale
@@ -152,17 +153,18 @@ end
 function chat_bubble_renderer.renderChatBubble(carData, driverData, chatBubbles, sim, bubbleDistance, nearRange, midRange,
                                                farRange, globaldt)
     local CurrentlyProcessedCar = carData
-    local bubble = chatBubbles[carData.index]
+    local bubble = vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index)
     ac.debug("driverData", driverData)
     ac.debug("cardData", carData)
     -- 计算相机距离（根据FOV调整）
-    driverData[carData.index].distanceToCamera = (carData.distanceToCamera / 2) * (sim.cameraFOV / 27)
+    local driverDataForCar = vehicle_data.getDriverDataOrNil(driverData, carData.index)
+    driverDataForCar.distanceToCamera = (carData.distanceToCamera / 2) * (sim.cameraFOV / 27)
 
     -- 检测距离阈值跨越以触发动画
     local _, currentDistance = vehicle_data.findLeadCar(carData.index)
     if currentDistance and currentDistance > 0 then
         -- 检查是否跨越了设定的阈值
-        local prevDistance = driverData[carData.index].prevDistance or 0
+        local prevDistance = driverDataForCar.prevDistance or 0
         local thresholds = { config.distance_thresholds.close, config.distance_thresholds.medium, config
             .distance_thresholds.far } -- 阈值列表
 
@@ -181,50 +183,52 @@ function chat_bubble_renderer.renderChatBubble(carData, driverData, chatBubbles,
         end
 
         -- 更新保存的距离值
-        driverData[carData.index].prevDistance = currentDistance
+        driverDataForCar.prevDistance = currentDistance
     end
 
     -- 如需要则更新画布（基于时间的更新频率以提高性能）
-    if not driverData[carData.index].lastCanvasUpdateTime then
-        driverData[carData.index].lastCanvasUpdateTime = 0
+    if not driverDataForCar.lastCanvasUpdateTime then
+        driverDataForCar.lastCanvasUpdateTime = 0
     end
 
     -- 每隔一定时间更新一次画布，而不是使用车辆数量作为阈值
     local updateTimeThreshold = 1.0 / config.render.fpsTarget -- 目标更新频率为30 FPS
-    if driverData[carData.index].lastCanvasUpdateTime > updateTimeThreshold and driverData[carData.index].distanceToCamera < bubbleDistance then
-        chatBubbles[carData.index].canvas:update(function()
+    if driverDataForCar.lastCanvasUpdateTime > updateTimeThreshold and driverDataForCar.distanceToCamera < bubbleDistance then
+        local bubbleForUpdate = vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index)
+        bubbleForUpdate.canvas:update(function()
             chat_bubble_renderer.renderBubble(CurrentlyProcessedCar,
                 chatBubbles, driverData)
         end)
-        driverData[carData.index].lastCanvasUpdateTime = 0
+        driverDataForCar.lastCanvasUpdateTime = 0
     end
 
-    if driverData[carData.index].distanceToCamera < bubbleDistance then
+    if driverDataForCar.distanceToCamera < bubbleDistance then
         -- 计算缩放和淡化因子
         local sizeScale, fadeScale = calculateScaleAndFade(driverData, carData.index, bubbleDistance)
 
         -- 根据距离和淡入状态绘制气泡
-        if chatBubbles[carData.index].fadeCurrent > 0 then
-            ui.drawImage(chatBubbles[carData.index].canvas,
+        if vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeCurrent > 0 then
+            ui.drawImage(vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).canvas,
                 vec2(1000 - ((sizeScale * 0.5 + 0.5) * 1000), 100 - ((sizeScale * 0.5 + 0.5) * 100)),
-                vec2(((sizeScale * 0.5 + 0.5) * 1000), 200), rgbm(1, 1, 1, chatBubbles[carData.index].fadeCurrent))
+                vec2(((sizeScale * 0.5 + 0.5) * 1000), 200),
+                rgbm(1, 1, 1, vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeCurrent))
         end
 
         -- 根据距离级别设置淡入淡出目标值
         setFadeTargetByDistanceLevel(bubble, fadeScale, nearRange, midRange, farRange, config)
 
         -- 平滑过渡淡入淡出值
-        if chatBubbles[carData.index].fadeTarget > chatBubbles[carData.index].fadeCurrent then
-            chatBubbles[carData.index].fadeCurrent = math.clamp(
-                chatBubbles[carData.index].fadeCurrent + globaldt * 2, 0, 1)
-        elseif chatBubbles[carData.index].fadeTarget < chatBubbles[carData.index].fadeCurrent then
-            chatBubbles[carData.index].fadeCurrent = math.clamp(
-                chatBubbles[carData.index].fadeCurrent - globaldt, 0, 1)
+        if vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeTarget > vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeCurrent then
+            vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeCurrent = math.clamp(
+                vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeCurrent + globaldt * 2, 0, 1)
+        elseif vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeTarget < vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeCurrent then
+            vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeCurrent = math.clamp(
+                vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeCurrent - globaldt, 0, 1)
         end
     else
         -- 车辆太远，隐藏气泡
-        chatBubbles[carData.index].fadeTarget = 0
-        chatBubbles[carData.index].fadeCurrent = 0
+        vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeTarget = 0
+        vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeCurrent = 0
     end
 end
 
