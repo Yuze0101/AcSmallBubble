@@ -1,5 +1,5 @@
 -- Auto-generated single file build
--- Generated at 2026-01-28 15:21:09
+-- Generated at 2026-01-28 15:53:20
 -- Original modules combined: utils, driverTable, render, main
 
 -- Define globals
@@ -15,7 +15,7 @@ Sim = nil
 
 --- @type table<integer, DriverData>
 local driverTable = {}
-ac.debug("driverTable", driverTable)
+
 --- @type function
 --- @param index integer
 local function updateDriverTableData(index)
@@ -38,6 +38,7 @@ local function updateDriverTableData(index)
         }
         return
     end
+    ac.debug("driverTable", driverTable)
 end
 
 -- --- @param index integer
@@ -61,6 +62,7 @@ local function calculateDistance(focusedCar)
     for index, driverData in pairs(driverTable) do
         driverTable[index].distance = (driverData.carInfo.position - focusedCar.position):length()
     end
+    ac.debug("计算后 driverTable", driverTable)
 end
 
 
@@ -91,8 +93,6 @@ local function renderCustom(carData)
     if driverTable[carData.index] then
         local driverData = driverTable[carData.index]
         local canvas, carInfo, distance = driverData.canvas, driverData.carInfo, driverData.distance
-        -- 先清除画布 防止文字重叠
-        canvas:clear()
         -- 更新画布
         canvas:update(function()
             renderName(carInfo)
@@ -124,7 +124,7 @@ local function getFocusedCar()
 end
 
 local focusedCar = getFocusedCar()
-ac.debug("焦点车辆", focusedCar)
+
 
 
 

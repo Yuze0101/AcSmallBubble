@@ -19,7 +19,7 @@ local function getFocusedCar()
 end
 
 local focusedCar = getFocusedCar()
-ac.debug("焦点车辆", focusedCar)
+
 
 
 

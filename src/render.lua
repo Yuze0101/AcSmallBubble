@@ -26,8 +26,6 @@ local function renderCustom(carData)
     if driverTable[carData.index] then
         local driverData = driverTable[carData.index]
         local canvas, carInfo, distance = driverData.canvas, driverData.carInfo, driverData.distance
-        -- 先清除画布 防止文字重叠
-        canvas:clear()
         -- 更新画布
         canvas:update(function()
             renderName(carInfo)
