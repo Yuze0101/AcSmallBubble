@@ -31,6 +31,13 @@ config.images = {
     C = 'http://youke.xn--y7xa690gmna.cn/s1/2026/01/28/69797249dbbc5.webp', -- 距离5米以内显示图像C
 }
 
+--- 车辆的距离
+config.carDistance = {
+    near = 5,
+    mid = 10,
+    far = 15,
+}
+
 
 
 return config

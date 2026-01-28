@@ -25,12 +25,18 @@ end
 
 --- @param distance number
 local function renderImage(distance)
-    if distance > config.render.maxDistance then
-        ui.drawImage(config.images.A, vec2(1000, 240), vec2(1200, 240), rgbm(1, 1, 1, 1))
-    elseif distance > config.render.maxDistance * 0.5 then
-        ui.drawImage(config.images.B, vec2(1000, 240), vec2(1200, 240), rgbm(1, 1, 1, 1))
-    else
-        ui.drawImage(config.images.C, vec2(1000, 240), vec2(1200, 240), rgbm(1, 1, 1, 1))
+    if distance < config.carDistance.near then
+        if ui.isImageReady(config.images.A) then
+            ui.drawImage(config.images.A, vec2(1000, 240), vec2(1200, 240), rgbm(1, 1, 1, 1))
+        end
+    elseif distance < config.carDistance.mid * 0.5 then
+        if ui.isImageReady(config.images.B) then
+            ui.drawImage(config.images.B, vec2(1000, 240), vec2(1200, 240), rgbm(1, 1, 1, 1))
+        end
+    elseif distance < config.carDistance.far then
+        if ui.isImageReady(config.images.C) then
+            ui.drawImage(config.images.C, vec2(1000, 240), vec2(1200, 240), rgbm(1, 1, 1, 1))
+        end
     end
 end
 
