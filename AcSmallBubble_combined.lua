@@ -1,5 +1,5 @@
 -- Auto-generated single file build
--- Generated at 2026-01-28 14:46:45
+-- Generated at 2026-01-28 14:50:38
 -- Original modules combined: utils, driverTable, render, main
 
 -- Define globals
@@ -124,8 +124,8 @@ end
 
 function script.update(dt)
     -- 每frame 刷新更新车辆信息，如果没有就添加到表里, 为了表同步
-    for index in ac.iterateCars() do
-        updateDriverTableData(index)
+    for index, car in ac.iterateCars() do
+        updateDriverTableData(car.index)
     end
 
     -- 有焦点车辆时，计算距离
