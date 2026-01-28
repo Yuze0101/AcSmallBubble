@@ -1,5 +1,5 @@
 -- Auto-generated single file build
--- Generated at 2026-01-28 17:10:16
+-- Generated at 2026-01-28 17:25:59
 -- Original modules combined: config, utils, driverTable, render, main
 
 -- Module: config
@@ -28,6 +28,12 @@ config.render = {
 
     --- 中心Y坐标
     centerY = 100
+}
+
+config.images = {
+    A = 'http://youke.xn--y7xa690gmna.cn/s1/2026/01/28/69797247a03ff.webp', -- 默认显示图像A（距离大于15米）
+    B = 'http://youke.xn--y7xa690gmna.cn/s1/2026/01/28/697972490f343.webp', -- 距离5-15米显示图像B
+    C = 'http://youke.xn--y7xa690gmna.cn/s1/2026/01/28/69797249dbbc5.webp', -- 距离5米以内显示图像C
 }
 
 -- Module: driverTable
@@ -111,7 +117,6 @@ end
 
 
 -- Module: render
-
 --- @param carInfo ac.StateCar
 local function renderName(carInfo)
     ui.pushDWriteFont()
@@ -132,6 +137,18 @@ local function renderDistance(distance)
     ui.popDWriteFont()
 end
 
+--- @param distance number
+local function renderImage(distance)
+    if distance > config.render.maxDistance then
+        ui.drawImage(config.images.A, vec2(1000, 240), vec2(1200, 240), rgbm(1, 1, 1, 1))
+    elseif distance > config.render.maxDistance * 0.5 then
+        ui.drawImage(config.images.B, vec2(1000, 240), vec2(1200, 240), rgbm(1, 1, 1, 1))
+    else
+        ui.drawImage(config.images.C, vec2(1000, 240), vec2(1200, 240), rgbm(1, 1, 1, 1))
+    end
+end
+
+
 --- @param carData ac.StateCar
 local function renderCustom(carData)
     if driverTable[carData.index] then
@@ -142,6 +159,7 @@ local function renderCustom(carData)
         canvas:update(function()
             renderName(carInfo)
             renderDistance(distance)
+            renderImage(distance)
         end)
 
         -- 根据距离计算缩放和位置
@@ -156,7 +174,6 @@ local function renderCustom(carData)
 end
 
 -- Main module:
-
 
 local Sim                                      = ac.getSim()
 
