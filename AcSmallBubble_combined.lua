@@ -41,9 +41,9 @@ config.animation = {
 -- https://youke.xn--y7xa690gmna.cn/s1/2026/01/28/69797249dbbc5.webp
 
 config.images = {
-    A = 'https://youke.xn--y7xa690gmna.cn/s1/2026/01/28/69797247a03ff.webp',  -- 默认显示图像A（距离大于15米）
-    B = 'https://youke.xn--y7xa690gmna.cn/s1/2026/01/28/697972490f343.webp',  -- 距离5-15米显示图像B
-    C = 'https://youke.xn--y7xa690gmna.cn/s1/2026/01/28/69797249dbbc5.webp',  -- 距离5米以内显示图像C
+    A = 'http://youke.xn--y7xa690gmna.cn/s1/2026/01/28/69797247a03ff.webp',  -- 默认显示图像A（距离大于15米）
+    B = 'http://youke.xn--y7xa690gmna.cn/s1/2026/01/28/697972490f343.webp',  -- 距离5-15米显示图像B
+    C = 'http://youke.xn--y7xa690gmna.cn/s1/2026/01/28/69797249dbbc5.webp',  -- 距离5米以内显示图像C
     AMD = 'Images/amd.gif'  -- AMD图标
 }
 
@@ -93,22 +93,45 @@ function vehicle_data.onSessionStart(driverData, chatBubbles)
     end
 end
 
--- 计算车辆到相机的距离
-function vehicle_data.calculateDistanceToCamera(carData, sim)
-    return (carData.distanceToCamera / 2) * (sim.cameraFOV / 27)
+-- 安全获取车辆数据的辅助函数
+function vehicle_data.getDriverDataOrNil(driverData, index)
+    if index == nil then
+        return {}
+    end
+    return driverData[index] or {}
 end
 
--- 计算范围内车辆的数量乘数
-function vehicle_data.calculateCarsInRangeMultiplier(sim, bubbleDistance, chatBubbles)
-    local carsInRangeMultiplierCurrent = 0
-    for i, car in ac.iterateCars() do
-        if i ~= sim.focusedCar and car.isConnected and car.distanceToCamera < bubbleDistance then
-            carsInRangeMultiplierCurrent = carsInRangeMultiplierCurrent +
-            math.clamp(((bubbleDistance - (car.distanceToCamera)) / bubbleDistance) ^ 0.9, 0, 1)
-        end
+-- 安全获取聊天气泡数据的辅助函数
+function vehicle_data.getChatBubbleOrNil(chatBubbles, index)
+    if index == nil then
+        return {
+            canvas = ui.ExtraCanvas(vec2(1200, 240), 1, render.AntialiasingMode.ExtraSharpCMAA),
+            fadeCurrent = 0,
+            fadeTarget = 0,
+            message = "",
+            timestamp = 0,
+            duration = config.bubble.duration,
+            active = false,
+            gifPlayer = ui.GIFPlayer(config.images.AMD),
+            lastHitTime = 0,
+            hitAnimationProgress = 0
+        }
     end
-    return math.clamp(math.max(1, carsInRangeMultiplierCurrent / 2), 1, 5)
+    
+    return chatBubbles[index] or {
+        canvas = ui.ExtraCanvas(vec2(1200, 240), 1, render.AntialiasingMode.ExtraSharpCMAA),
+        fadeCurrent = 0,
+        fadeTarget = 0,
+        message = "",
+        timestamp = 0,
+        duration = config.bubble.duration,
+        active = false,
+        gifPlayer = ui.GIFPlayer(config.images.AMD),
+        lastHitTime = 0,
+        hitAnimationProgress = 0
+    }
 end
+
 
 -- 查找最近的车辆并计算距离（不考虑车辆朝向）
 function vehicle_data.findLeadCar(currentCarIndex)
@@ -157,7 +180,7 @@ local chat_bubble_renderer = {}
 -- 渲染聊天气泡
 function chat_bubble_renderer.renderBubble(CurrentlyProcessedCar, chatBubbles, driverData)
     local carData = CurrentlyProcessedCar
-    local bubble = chatBubbles[carData.index]
+    local bubble = vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index)
 
     ui.pushDWriteFont('Poppins:Fonts/Poppins-Medium.ttf;Weight=Medium')
     ui.beginOutline()
@@ -178,7 +201,7 @@ function chat_bubble_renderer.renderBubble(CurrentlyProcessedCar, chatBubbles, d
     ui.pushDWriteFont('Poppins:Fonts/Poppins-Regular.ttf')
     ui.beginOutline()
 
-    local driverName = driverData[carData.index] and driverData[carData.index].driverName or "Unknown Driver"
+    local driverName = vehicle_data.getDriverDataOrNil(driverData, carData.index).driverName or "Unknown Driver"
 
     ui.dwriteTextAligned(driverName, 56, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 60), false,
         rgb(0.9, 0.9, 0.9))
@@ -268,10 +291,11 @@ end
 
 -- 计算缩放和淡化因子的辅助函数
 local function calculateScaleAndFade(driverData, carIndex, bubbleDistance)
+    local driverDataForCar = vehicle_data.getDriverDataOrNil(driverData, carIndex)
     local sizeScale = math.clamp(
-        (((bubbleDistance) - (driverData[carIndex].distanceToCamera)) / (bubbleDistance)) ^ 0.9, 0.249, 1)
+        (((bubbleDistance) - (driverDataForCar.distanceToCamera)) / (bubbleDistance)) ^ 0.9, 0.249, 1)
     local fadeScale = math.clamp(
-        ((math.max(bubbleDistance, driverData[carIndex].distanceToCamera + 0.0001) - (driverData[carIndex].distanceToCamera)) / (bubbleDistance)) ^
+        ((math.max(bubbleDistance, driverDataForCar.distanceToCamera + 0.0001) - (driverDataForCar.distanceToCamera)) / (bubbleDistance)) ^
         0.9, 0.249, 1)
 
     return sizeScale, fadeScale
@@ -303,17 +327,18 @@ end
 function chat_bubble_renderer.renderChatBubble(carData, driverData, chatBubbles, sim, bubbleDistance, nearRange, midRange,
                                                farRange, globaldt)
     local CurrentlyProcessedCar = carData
-    local bubble = chatBubbles[carData.index]
+    local bubble = vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index)
     ac.debug("driverData", driverData)
     ac.debug("cardData", carData)
     -- 计算相机距离（根据FOV调整）
-    driverData[carData.index].distanceToCamera = (carData.distanceToCamera / 2) * (sim.cameraFOV / 27)
+    local driverDataForCar = vehicle_data.getDriverDataOrNil(driverData, carData.index)
+    driverDataForCar.distanceToCamera = (carData.distanceToCamera / 2) * (sim.cameraFOV / 27)
 
     -- 检测距离阈值跨越以触发动画
     local _, currentDistance = vehicle_data.findLeadCar(carData.index)
     if currentDistance and currentDistance > 0 then
         -- 检查是否跨越了设定的阈值
-        local prevDistance = driverData[carData.index].prevDistance or 0
+        local prevDistance = driverDataForCar.prevDistance or 0
         local thresholds = { config.distance_thresholds.close, config.distance_thresholds.medium, config
             .distance_thresholds.far } -- 阈值列表
 
@@ -332,50 +357,52 @@ function chat_bubble_renderer.renderChatBubble(carData, driverData, chatBubbles,
         end
 
         -- 更新保存的距离值
-        driverData[carData.index].prevDistance = currentDistance
+        driverDataForCar.prevDistance = currentDistance
     end
 
     -- 如需要则更新画布（基于时间的更新频率以提高性能）
-    if not driverData[carData.index].lastCanvasUpdateTime then
-        driverData[carData.index].lastCanvasUpdateTime = 0
+    if not driverDataForCar.lastCanvasUpdateTime then
+        driverDataForCar.lastCanvasUpdateTime = 0
     end
 
     -- 每隔一定时间更新一次画布，而不是使用车辆数量作为阈值
     local updateTimeThreshold = 1.0 / config.render.fpsTarget -- 目标更新频率为30 FPS
-    if driverData[carData.index].lastCanvasUpdateTime > updateTimeThreshold and driverData[carData.index].distanceToCamera < bubbleDistance then
-        chatBubbles[carData.index].canvas:update(function()
+    if driverDataForCar.lastCanvasUpdateTime > updateTimeThreshold and driverDataForCar.distanceToCamera < bubbleDistance then
+        local bubbleForUpdate = vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index)
+        bubbleForUpdate.canvas:update(function()
             chat_bubble_renderer.renderBubble(CurrentlyProcessedCar,
                 chatBubbles, driverData)
         end)
-        driverData[carData.index].lastCanvasUpdateTime = 0
+        driverDataForCar.lastCanvasUpdateTime = 0
     end
 
-    if driverData[carData.index].distanceToCamera < bubbleDistance then
+    if driverDataForCar.distanceToCamera < bubbleDistance then
         -- 计算缩放和淡化因子
         local sizeScale, fadeScale = calculateScaleAndFade(driverData, carData.index, bubbleDistance)
 
         -- 根据距离和淡入状态绘制气泡
-        if chatBubbles[carData.index].fadeCurrent > 0 then
-            ui.drawImage(chatBubbles[carData.index].canvas,
+        if vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeCurrent > 0 then
+            ui.drawImage(vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).canvas,
                 vec2(1000 - ((sizeScale * 0.5 + 0.5) * 1000), 100 - ((sizeScale * 0.5 + 0.5) * 100)),
-                vec2(((sizeScale * 0.5 + 0.5) * 1000), 200), rgbm(1, 1, 1, chatBubbles[carData.index].fadeCurrent))
+                vec2(((sizeScale * 0.5 + 0.5) * 1000), 200),
+                rgbm(1, 1, 1, vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeCurrent))
         end
 
         -- 根据距离级别设置淡入淡出目标值
         setFadeTargetByDistanceLevel(bubble, fadeScale, nearRange, midRange, farRange, config)
 
         -- 平滑过渡淡入淡出值
-        if chatBubbles[carData.index].fadeTarget > chatBubbles[carData.index].fadeCurrent then
-            chatBubbles[carData.index].fadeCurrent = math.clamp(
-                chatBubbles[carData.index].fadeCurrent + globaldt * 2, 0, 1)
-        elseif chatBubbles[carData.index].fadeTarget < chatBubbles[carData.index].fadeCurrent then
-            chatBubbles[carData.index].fadeCurrent = math.clamp(
-                chatBubbles[carData.index].fadeCurrent - globaldt, 0, 1)
+        if vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeTarget > vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeCurrent then
+            vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeCurrent = math.clamp(
+                vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeCurrent + globaldt * 2, 0, 1)
+        elseif vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeTarget < vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeCurrent then
+            vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeCurrent = math.clamp(
+                vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeCurrent - globaldt, 0, 1)
         end
     else
         -- 车辆太远，隐藏气泡
-        chatBubbles[carData.index].fadeTarget = 0
-        chatBubbles[carData.index].fadeCurrent = 0
+        vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeTarget = 0
+        vehicle_data.getChatBubbleOrNil(chatBubbles, carData.index).fadeCurrent = 0
     end
 end
 
@@ -470,7 +497,6 @@ local driverData = {}
 local chatBubbles = {}
 local globaldt = 0.016
 local globalTimer = 0
-local carsInRangeMultiplierCurrent = 1
 local fpsCounter = 0
 local fpsUpdateInterval = 0               -- 控制更新频率的时间间隔（秒）
 local fpsTarget = config.render.fpsTarget -- 目标更新帧率
@@ -514,9 +540,6 @@ function script.update(dt)
     -- 根据目标帧率计算更新间隔
     fpsUpdateInterval = 1.0 / fpsTarget
 
-    -- 根据范围内的车辆数量计算乘数
-    carsInRangeMultiplierCurrent = vehicle_data.calculateCarsInRangeMultiplier(Sim, bubbleDistance, chatBubbles)
-    ac.debug("carsInRangeMultiplierCurrent", carsInRangeMultiplierCurrent)
 
     -- 检查是否有活动气泡需要停用
     for i, bubble in pairs(chatBubbles) do
