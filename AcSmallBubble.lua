@@ -20,7 +20,6 @@ local farRange = config.bubble.farRange
 
 local driverData = {}
 local chatBubbles = {}
-local numberOfCars = 0
 local globaldt = 0.016
 local globalTimer = 0
 local carsInRangeMultiplierCurrent = 1
@@ -29,7 +28,7 @@ local fpsUpdateInterval = 0               -- 控制更新频率的时间间隔�
 local fpsTarget = config.render.fpsTarget -- 目标更新帧率
 
 -- 初始化车辆数据
-driverData, chatBubbles, numberOfCars = vehicle_data.init(numberOfCars)
+driverData, chatBubbles = vehicle_data.init()
 
 -- 处理会话开始事件
 function onSessionStart()
@@ -90,11 +89,9 @@ function script.update(dt)
 
 
     -- 更新lastCanvasUpdate计数器
-    for i = 0, numberOfCars - 1 do
-        if driverData[i] then
-            -- 增加一个基于时间的更新计数器，而不是简单的递增
-            driverData[i].lastCanvasUpdateTime = (driverData[i].lastCanvasUpdateTime or 0) + dt
-        end
+    for index, _ in pairs(driverData) do
+        -- 增加一个基于时间的更新计数器，而不是简单的递增
+        driverData[index].lastCanvasUpdateTime = (driverData[index].lastCanvasUpdateTime or 0) + dt
     end
 end
 

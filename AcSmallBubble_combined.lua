@@ -307,7 +307,6 @@ function chat_bubble_renderer.renderChatBubble(carData, driverData, chatBubbles,
 
     -- 计算相机距离（根据FOV调整）
     driverData[carData.index].distanceToCamera = (carData.distanceToCamera / 2) * (sim.cameraFOV / 27)
-
     -- 检测距离阈值跨越以触发动画
     local _, currentDistance = vehicle_data.findLeadCar(carData.index)
     if currentDistance and currentDistance > 0 then

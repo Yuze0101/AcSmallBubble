@@ -3,13 +3,12 @@ local vehicle_data = {}
 local config = require('config')
 
 -- 初始化所有车辆的数据结构
-function vehicle_data.init(numberOfCars)
+function vehicle_data.init()
     local driverData = {}
     local chatBubbles = {}
 
     -- 使用ac.iterateCars API获取车辆数据
     for i, car in ac.iterateCars() do
-        numberOfCars = numberOfCars + 1
         driverData[i] = {}
         chatBubbles[i] = {
             canvas = ui.ExtraCanvas(vec2(1200, 240), 1, render.AntialiasingMode.ExtraSharpCMAA),
@@ -26,7 +25,7 @@ function vehicle_data.init(numberOfCars)
         driverData[i].driverName = car:driverName()
     end
 
-    return driverData, chatBubbles, numberOfCars
+    return driverData, chatBubbles
 end
 
 -- 更新会话开始时的车辆数据
