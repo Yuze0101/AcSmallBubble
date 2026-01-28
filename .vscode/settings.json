@@ -2,5 +2,10 @@
   "Lua.workspace.library": [
     "${workspaceFolder}/lua-sdk"
   ],
-  "Lua.workspace.checkThirdParty": false
+  "Lua.workspace.checkThirdParty": false,
+  "cSpell.words": [
+    "CMAA",
+    "dwrite",
+    "rgbm"
+  ]
 }
