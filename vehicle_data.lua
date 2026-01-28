@@ -7,10 +7,8 @@ function vehicle_data.init(numberOfCars)
     local driverData = {}
     local chatBubbles = {}
 
-    for i = 0, 100 do
-        if not ac.getCar(i) then
-            break
-        end
+    -- 使用ac.iterateCars API获取车辆数据
+    for i, car in ac.iterateCars() do
         numberOfCars = numberOfCars + 1
         driverData[i] = {}
         chatBubbles[i] = {
@@ -21,11 +19,11 @@ function vehicle_data.init(numberOfCars)
             timestamp = 0,  -- 消息接收时间
             duration = config.bubble.duration,   -- 显示消息的持续时间（秒）
             active = false, -- 气泡是否处于活动状态
-            gifPlayer = ui.GIFPlayer('Images/amd.gif'), -- 创建GIFPlayer实例
+            gifPlayer = ui.GIFPlayer(config.images.AMD), -- 创建GIFPlayer实例，使用配置中的AMD图片路径
             lastHitTime = 0, -- 上次撞击时间
             hitAnimationProgress = 0 -- 撞击动画进度 (0-1)
         }
-        driverData[i].driverName = ac.getCar(i):driverName()
+        driverData[i].driverName = car:driverName()
     end
 
     return driverData, chatBubbles, numberOfCars
@@ -33,16 +31,14 @@ end
 
 -- 更新会话开始时的车辆数据
 function vehicle_data.onSessionStart(driverData, chatBubbles)
-    for i = 0, 1000 do
-        if not ac.getCar(i) then
-            break
-        end
-        driverData[i].driverName = ac.getCar(i):driverName()
+    -- 使用ac.iterateCars API获取车辆数据
+    for i, car in ac.iterateCars() do
+        driverData[i].driverName = car:driverName()
        
         -- 为新车添加模拟消息
         if not chatBubbles[i].mockMessage then
             chatBubbles[i].mockMessage = "Hello from " ..
-            (ac.getCar(i) and ac.getCar(i):driverName() or "Unknown Driver") .. "!"
+            (car and car:driverName() or "Unknown Driver") .. "!"
             chatBubbles[i].mockActive = true
         end
     end
@@ -56,13 +52,10 @@ end
 -- 计算范围内车辆的数量乘数
 function vehicle_data.calculateCarsInRangeMultiplier(sim, bubbleDistance, chatBubbles)
     local carsInRangeMultiplierCurrent = 0
-    for i = 0, 1000 do
-        if not ac.getCar(i) then
-            break
-        end
-        if i ~= sim.focusedCar and ac.getCar(i).isConnected and ac.getCar(i).distanceToCamera < bubbleDistance then
+    for i, car in ac.iterateCars() do
+        if i ~= sim.focusedCar and car.isConnected and car.distanceToCamera < bubbleDistance then
             carsInRangeMultiplierCurrent = carsInRangeMultiplierCurrent +
-            math.clamp(((bubbleDistance - (ac.getCar(i).distanceToCamera)) / bubbleDistance) ^ 0.9, 0, 1)
+            math.clamp(((bubbleDistance - (car.distanceToCamera)) / bubbleDistance) ^ 0.9, 0, 1)
         end
     end
     return math.clamp(math.max(1, carsInRangeMultiplierCurrent / 2), 1, 5)
@@ -70,11 +63,11 @@ end
 
 -- 查找最近的车辆并计算距离（不考虑车辆朝向）
 function vehicle_data.findLeadCar(currentCarIndex)
-    if not ac.getCar(currentCarIndex) then
+    local currentCar = ac.getCar(currentCarIndex)
+    if not currentCar then
         return nil, 0
     end
     
-    local currentCar = ac.getCar(currentCarIndex)
     local currentPosition = currentCar.position
     
     if not currentPosition then
@@ -84,18 +77,9 @@ function vehicle_data.findLeadCar(currentCarIndex)
     local minDistance = math.huge
     local closestCarIndex = nil
     
-    -- 获取实际存在的车辆数量，避免不必要的循环
-    local maxCarIndex = 0
-    for i = 0, 1000 do
-        if not ac.getCar(i) then
-            maxCarIndex = i
-            break
-        end
-    end
-    
-    for i = 0, maxCarIndex - 1 do
-        if i ~= currentCarIndex and ac.getCar(i) and ac.getCar(i).isConnected then
-            local otherCar = ac.getCar(i)
+    -- 使用ac.iterateCars遍历所有车辆
+    for i, otherCar in ac.iterateCars() do
+        if i ~= currentCarIndex and otherCar and otherCar.isConnected then
             if otherCar and otherCar.position then
                 -- 计算两车之间的距离
                 local distance = (otherCar.position - currentPosition):length()
