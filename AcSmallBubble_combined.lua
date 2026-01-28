@@ -1,5 +1,5 @@
 -- Auto-generated single file build
--- Generated at 2026-01-28 14:50:38
+-- Generated at 2026-01-28 14:58:25
 -- Original modules combined: utils, driverTable, render, main
 
 -- Define globals
@@ -117,8 +117,10 @@ end
 
 
 local function getFocusedCar()
-    if Sim.focusedCar then
+    if Sim.focusedCar ~= -1 then
         return ac.getCar(Sim.focusedCar)
+    else
+        return nil
     end
 end
 
@@ -130,6 +132,7 @@ function script.update(dt)
 
     -- 有焦点车辆时，计算距离
     local focusedCar = getFocusedCar()
+    ac.debug("焦点车辆", focusedCar)
     if focusedCar then
         calculateDistance(focusedCar)
     end
