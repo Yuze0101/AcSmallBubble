@@ -39,9 +39,9 @@ config.animation = {
 -- https://youke.xn--y7xa690gmna.cn/s1/2026/01/28/69797249dbbc5.webp
 
 config.images = {
-    A = 'https://youke.xn--y7xa690gmna.cn/s1/2026/01/28/69797247a03ff.webp',  -- 默认显示图像A（距离大于15米）
-    B = 'https://youke.xn--y7xa690gmna.cn/s1/2026/01/28/697972490f343.webp',  -- 距离5-15米显示图像B
-    C = 'https://youke.xn--y7xa690gmna.cn/s1/2026/01/28/69797249dbbc5.webp',  -- 距离5米以内显示图像C
+    A = 'http://youke.xn--y7xa690gmna.cn/s1/2026/01/28/69797247a03ff.webp',  -- 默认显示图像A（距离大于15米）
+    B = 'http://youke.xn--y7xa690gmna.cn/s1/2026/01/28/697972490f343.webp',  -- 距离5-15米显示图像B
+    C = 'http://youke.xn--y7xa690gmna.cn/s1/2026/01/28/69797249dbbc5.webp',  -- 距离5米以内显示图像C
     AMD = 'Images/amd.gif'  -- AMD图标
 }
 
