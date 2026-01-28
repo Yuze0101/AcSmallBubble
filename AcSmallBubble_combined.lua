@@ -1,5 +1,5 @@
 -- Auto-generated single file build
--- Generated at 2026-01-28 16:02:16
+-- Generated at 2026-01-28 16:03:08
 -- Original modules combined: utils, driverTable, render, main
 
 -- Define globals
@@ -99,6 +99,7 @@ local function renderCustom(carData)
     ac.debug('nameTag渲染  driverTable[carData.index]', driverTable[carData.index])
     if driverTable[carData.index] then
         local driverData = driverTable[carData.index]
+        ac.debug('nameTag渲染 driverData', driverData)
         local canvas, carInfo, distance = driverData.canvas, driverData.carInfo, driverData.distance
         -- 更新画布
         canvas:update(function()

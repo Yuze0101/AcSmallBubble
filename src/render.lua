@@ -32,6 +32,7 @@ local function renderCustom(carData)
     ac.debug('nameTag渲染  driverTable[carData.index]', driverTable[carData.index])
     if driverTable[carData.index] then
         local driverData = driverTable[carData.index]
+        ac.debug('nameTag渲染 driverData', driverData)
         local canvas, carInfo, distance = driverData.canvas, driverData.carInfo, driverData.distance
         -- 更新画布
         canvas:update(function()
