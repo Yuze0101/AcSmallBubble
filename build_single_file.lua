@@ -9,7 +9,23 @@ local function read_file(path)
     return content
 end
 
-local function write_to_combined(content, output_path)
+local function file_exists(path)
+    local file = io.open(path, "r")
+    if file then
+        file:close()
+        return true
+    end
+    return false
+end
+
+local function clean_and_write(content, output_path)
+    -- 如果文件存在，先删除它
+    if file_exists(output_path) then
+        os.remove(output_path)
+        print("已清理旧的目标文件: " .. output_path)
+    end
+    
+    -- 创建新文件并写入内容
     local file = io.open(output_path, "w")
     if not file then
         error("无法创建输出文件: " .. output_path)
@@ -36,7 +52,7 @@ local combined = header_comment ..
     audio_manager_module:gsub("^.-\n", ""):gsub("local config = require%('config'%)", ""):gsub("return audio_manager", "") .. "\n\n" ..
     main_module:gsub("local config = require%('config'%)", ""):gsub("local vehicle_data = require%('vehicle_data'%)", ""):gsub("local chat_bubble_renderer = require%('chat_bubble_renderer'%)", ""):gsub("local collision_detector = require%('collision_detector'%)", ""):gsub("local audio_manager = require%('audio_manager'%)", "")
 
--- 写入合并后的文件
-write_to_combined(combined, "AcSmallBubble_combined.lua")
+-- 清理并写入合并后的文件
+clean_and_write(combined, "AcSmallBubble_combined.lua")
 
 print("项目已成功合并到 AcSmallBubble_combined.lua")
