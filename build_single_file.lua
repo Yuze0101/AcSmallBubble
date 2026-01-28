@@ -30,16 +30,18 @@ local function build()
     local utils_content = read_file("./src/utils.lua")
     local driver_table_content = read_file("./src/driverTable.lua")
     local render_content = read_file("./src/render.lua")
+    local config_content = read_file("./src/config.lua")
     local main_content = read_file("./src/main.lua")
     
     -- 构建最终输出内容
     local output_content = "-- Auto-generated single file build\n"
     output_content = output_content .. "-- Generated at " .. os.date("%Y-%m-%d %H:%M:%S") .. "\n"
-    output_content = output_content .. "-- Original modules combined: utils, driverTable, render, main\n\n"
+    output_content = output_content .. "-- Original modules combined: config, utils, driverTable, render, main\n\n"
     
-    -- 定义全局变量
-    output_content = output_content .. "-- Define globals\n"
-    output_content = output_content .. "Sim = nil\n\n"
+    -- 添加 config 模块内容（移除 return 语句）
+    output_content = output_content .. "-- Module: config\n"
+    config_content = config_content:gsub("[%s\n\r]+return%s+config[%s%w\n\r]*", "")
+    output_content = output_content .. config_content .. "\n\n"
     
     -- 添加 driverTable 模块内容（移除 return 语句）
     output_content = output_content .. "-- Module: driverTable\n"
@@ -47,32 +49,34 @@ local function build()
     driver_table_content = driver_table_content:gsub("\nreturn driverTable, updateDriverTableData", "")
     output_content = output_content .. driver_table_content .. "\n\n"
     
-    -- 添加 utils 模块内容（移除 require 语句）
+    -- 添加 utils 模块内容（移除 require 语句和 return 语句）
     output_content = output_content .. "-- Module: utils\n"
     -- 移除 require 语句
     utils_content = utils_content:gsub('local%s+driverTable%s*=%s*require%s+"driverTable"%s*\n?', '')
-    -- 移除 return 语句
-    utils_content = utils_content:gsub('\nreturn calculateDistance', '')
-    -- 修改utils中的函数，使用pairs而不是ipairs，因为driverTable是用索引作为key的
-    utils_content = utils_content:gsub('for index, driverData in ipairs%(driverTable%) do', 'for index, driverData in pairs(driverTable) do')
+    utils_content = utils_content:gsub('local%s+config%s*=%s*require%s+"config"%s*\n?', '')
+    -- 移除 return 语句（完整移除整个return语句行）
+    utils_content = utils_content:gsub('[\n\r]+%s*return%s+calculateDistance,%s+calculateScaleByDistance,%s+calculateDrawPosition[%s%w\n\r]*', '\n')
     output_content = output_content .. utils_content .. "\n\n"
     
-    -- 添加 render 模块内容（移除 require 语句）
+    -- 添加 render 模块内容（移除 require 语句和 return 语句及类型注释）
     output_content = output_content .. "-- Module: render\n"
     -- 移除 require 语句
-    render_content = render_content:gsub('local%s+driverTable,%s+updateDriverTableData,%s+deleteDriverTableData%s*=%s*require%s+"driverTable"%s*\n?', '')
     render_content = render_content:gsub('local%s+driverTable%s*=%s*require%s+"driverTable"%s*\n?', '')
+    render_content = render_content:gsub('local%s+config%s*=%s*require%s+"config"%s*\n?', '')
+    -- 移除对utils的require和类型注释（包括类型注释本身）
+    render_content = render_content:gsub('local%s+[%w_%s%,]+=%s*require%s+"utils"[^\n]*\n', '')
+    render_content = render_content:gsub('%-%-@type[^\n]*\n', '')
     -- 移除 return 语句
-    render_content = render_content:gsub('\nreturn renderCustom', '')
+    render_content = render_content:gsub('[\n\r]+%s*return%s+renderCustom[%s%w\n\r]*', '')
     output_content = output_content .. render_content .. "\n\n"
     
     -- 添加 main 模块内容，移除 require 语句
     output_content = output_content .. "-- Main module:\n"
     -- 移除 main 模块中的所有 require 语句及相关类型注解
-    main_content = main_content:gsub('local%s+renderCustom%s*=%s*require%s+"render"%s*\n?', '')
-    main_content = main_content:gsub('local%s+calculateDistance%s*=%s*require%s+"utils"%s*\n?', '')
-    main_content = main_content:gsub('local%s+driverTable,%s+updateDriverTableData,%s+deleteDriverTableData%s*=%s*require%s+"driverTable"[^\n]*\n', '')
-    main_content = main_content:gsub('@.-require "driverTable"[^\n]*\n', '')
+    main_content = main_content:gsub('local%s+renderCustom%s*=%s*require%s+"render"[^\n]*\n', '')
+    main_content = main_content:gsub('local%s+calculateDistance%s*=%s*require%s+"utils"[^\n]*\n', '')
+    main_content = main_content:gsub('local%s+driverTable,%s*updateDriverTableData%s*=%s*require%s+"driverTable"[^\n]*\n', '')
+    main_content = main_content:gsub('%-%-@type[^\n]*\n', '')  -- 移除类型注释
     output_content = output_content .. main_content
     
     -- 写入输出文件

@@ -1,14 +1,15 @@
 local renderCustom                       = require "render"
 local calculateDistance                  = require "utils"
 
----@type table<integer, DriverData>, fun(index: integer), fun(index: integer)
+---@type table<integer, DriverData>, fun(index: integer)
 local driverTable, updateDriverTableData = require "driverTable"
 
-Sim                                      = ac.getSim()
+local Sim                                      = ac.getSim()
 
 if Sim.driverNamesShown == true then
     ui.onDriverNameTag(true, rgbm(1, 1, 1, 0.3), renderCustom)
 end
+
 
 local function getFocusedCar()
     if Sim.focusedCar ~= -1 then
@@ -18,11 +19,6 @@ local function getFocusedCar()
     end
 end
 
-local focusedCar = getFocusedCar()
-
-
-
-
 function script.update(dt)
     -- 每frame 刷新更新车辆信息，如果没有就添加到表里, 为了表同步
     for index, car in ac.iterateCars() do
@@ -30,7 +26,8 @@ function script.update(dt)
     end
 
     -- 有焦点车辆时，计算距离
-
+    local focusedCar = getFocusedCar()
+    ac.debug("焦点车辆", focusedCar)
     if focusedCar then
         calculateDistance(focusedCar)
     end

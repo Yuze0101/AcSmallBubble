@@ -18,7 +18,6 @@ local function updateDriverTableData(index)
 
     -- 没有所以的数据，新加到表里
     if not driverTable[index] then
-
         -- 保存车辆信息、聊天信息、画布信息
         driverTable[index] = {
             carInfo = carInfo,
@@ -31,17 +30,5 @@ local function updateDriverTableData(index)
     ac.debug("driverTable", driverTable)
 end
 
--- --- @param index integer
--- --- @type function
--- local function deleteDriverTableData(index)
---     if driverTable[index] then
---         print("删除 driverTable", index)
---         -- 删除canvas资源
---         if driverTable[index].canvas then
---             driverTable[index].canvas:dispose()
---         end
---         driverTable[index] = nil
---     end
--- end
 
 return driverTable, updateDriverTableData
