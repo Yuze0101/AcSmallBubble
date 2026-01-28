@@ -27,6 +27,9 @@ end
 
 --- @param carData ac.StateCar
 local function renderCustom(carData)
+    ac.debug('nameTag渲染', carData)
+    ac.debug('nameTag渲染 index', carData.index)
+    ac.debug('nameTag渲染  driverTable[carData.index]', driverTable[carData.index])
     if driverTable[carData.index] then
         local driverData = driverTable[carData.index]
         local canvas, carInfo, distance = driverData.canvas, driverData.carInfo, driverData.distance
