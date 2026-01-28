@@ -39,35 +39,4 @@ function collision_detector.setupPlayerCollisionDetection(chatBubbles, sim)
     return collisionDisposable
 end
 
--- 为所有车辆设置碰撞检测
-function collision_detector.setupAllCarsCollisionDetection(chatBubbles)
-    local collisionDisposable = ac.onCarCollision(-1, function(carIndex)
-        print("车辆 " .. carIndex .. " 发生了碰撞!")
-
-        -- 触发撞击动画效果
-        if chatBubbles[carIndex] then
-            local currentTime = os.clock()
-            -- 检查上次撞击时间，确保不会连续触发
-            if currentTime - (chatBubbles[carIndex].lastHitTime or 0) > config.collision.cooldown then -- 至少间隔0.5秒
-                chatBubbles[carIndex].lastHitTime = currentTime
-                chatBubbles[carIndex].hitAnimationProgress = 1                                         -- 开始动画
-
-                -- 更新消息内容和时间戳
-                chatBubbles[carIndex].message = "碰撞! Collision detected!"
-                chatBubbles[carIndex].timestamp = currentTime
-                chatBubbles[carIndex].active = true
-                chatBubbles[carIndex].fadeTarget = 1
-            end
-        end
-
-        -- 获取车辆数据以进行更详细的分析
-        local car = ac.getCar(carIndex)
-        if car then
-            print("碰撞力度: " .. tostring(car.collisionDepth or "N/A"))
-        end
-    end)
-
-    return collisionDisposable
-end
-
 return collision_detector
