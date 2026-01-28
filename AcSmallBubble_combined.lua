@@ -1,5 +1,5 @@
 -- Auto-generated single file build
--- Generated at 2026-01-28 16:03:08
+-- Generated at 2026-01-28 16:20:57
 -- Original modules combined: utils, driverTable, render, main
 
 -- Define globals
@@ -21,13 +21,11 @@ local driverTable = {}
 local function updateDriverTableData(index)
     local carInfo = ac.getCar(index)
     if not carInfo then
-        print("找不到这个车 索引:", index)
         return
     end
 
     -- 没有所以的数据，新加到表里
     if not driverTable[index] then
-        print("表里没这个车", index, " 添加入 driverTable")
 
         -- 保存车辆信息、聊天信息、画布信息
         driverTable[index] = {
@@ -62,7 +60,6 @@ local function calculateDistance(focusedCar)
     for index, driverData in pairs(driverTable) do
         driverTable[index].distance = (driverData.carInfo.position - focusedCar.position):length()
     end
-    ac.debug("计算后 driverTable", driverTable)
 end
 
 
@@ -70,10 +67,10 @@ end
 -- Module: render
 --- @param carInfo ac.StateCar
 local function renderName(carInfo)
-    ui.pushDWriteFont('Poppins:Fonts/Poppins-Medium.ttf;Weight=Medium')
+    ui.pushDWriteFont()
     ui.beginOutline()
     -- 居中渲染消息文本
-    ui.dwriteTextAligned(carInfo:driverName(), 56, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 80), false,
+    ui.dwriteTextAligned(carInfo:driverName(), 52, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 80), false,
         rgbm(1, 1, 1, 1))
     ui.endOutline(rgbm(1, 1, 1, 0.1))
     ui.popDWriteFont()
@@ -84,8 +81,8 @@ local function renderDistance(distance)
     -- 有焦点车 才渲染距离
     local focusedCar = ac.getCar(Sim.focusedCar)
     if focusedCar then
-        ui.pushDWriteFont('Poppins:Fonts/Poppins-Medium.ttf;Weight=Medium')
-        ui.dwriteTextAligned(string.format("%.1f", distance), 56, ui.Alignment.Center, ui.Alignment.Center,
+        ui.pushDWriteFont()
+        ui.dwriteTextAligned(string.format("%.1f", distance), 42, ui.Alignment.Center, ui.Alignment.Center,
             vec2(1000, 80), false, rgbm(1, 1, 1, 1))
         ui.endOutline(rgbm(1, 1, 1, 0.1))
         ui.popDWriteFont()
@@ -94,12 +91,8 @@ end
 
 --- @param carData ac.StateCar
 local function renderCustom(carData)
-    ac.debug('nameTag渲染', carData)
-    ac.debug('nameTag渲染 index', carData.index)
-    ac.debug('nameTag渲染  driverTable[carData.index]', driverTable[carData.index])
     if driverTable[carData.index] then
         local driverData = driverTable[carData.index]
-        ac.debug('nameTag渲染 driverData', driverData)
         local canvas, carInfo, distance = driverData.canvas, driverData.carInfo, driverData.distance
         -- 更新画布
         canvas:update(function()

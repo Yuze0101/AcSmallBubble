@@ -13,13 +13,11 @@ local driverTable = {}
 local function updateDriverTableData(index)
     local carInfo = ac.getCar(index)
     if not carInfo then
-        print("找不到这个车 索引:", index)
         return
     end
 
     -- 没有所以的数据，新加到表里
     if not driverTable[index] then
-        print("表里没这个车", index, " 添加入 driverTable")
 
         -- 保存车辆信息、聊天信息、画布信息
         driverTable[index] = {
