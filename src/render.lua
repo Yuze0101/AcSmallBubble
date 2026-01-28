@@ -4,9 +4,11 @@ local driverTable = require "driverTable"
 --- @param carInfo ac.StateCar
 local function renderName(carInfo)
     ui.pushDWriteFont('Poppins:Fonts/Poppins-Medium.ttf;Weight=Medium')
+    ui.beginOutline()
     -- 居中渲染消息文本
     ui.dwriteTextAligned(carInfo:driverName(), 56, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 80), false,
         rgbm(1, 1, 1, 1))
+    ui.endOutline(rgbm(1, 1, 1, 0.1))
     ui.popDWriteFont()
 end
 
@@ -18,6 +20,8 @@ local function renderDistance(distance)
         ui.pushDWriteFont('Poppins:Fonts/Poppins-Medium.ttf;Weight=Medium')
         ui.dwriteTextAligned(string.format("%.1f", distance), 56, ui.Alignment.Center, ui.Alignment.Center,
             vec2(1000, 80), false, rgbm(1, 1, 1, 1))
+        ui.endOutline(rgbm(1, 1, 1, 0.1))
+        ui.popDWriteFont()
     end
 end
 
