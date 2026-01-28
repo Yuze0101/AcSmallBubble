@@ -7,7 +7,7 @@
 
 --- @type table<integer, DriverData>
 local driverTable = {}
-
+ac.debug("driverTable", driverTable)
 --- @type function
 --- @param index integer
 local function updateDriverTableData(index)
