@@ -106,7 +106,6 @@ if Sim.driverNamesShown == true then
     end, { distanceMultiplier = math.ceil(bubbleDistance / 10), tagSize = vec2(1000, 200) })
 end
 
--- 所有车辆碰撞检测
--- collision_detector.setupAllCarsCollisionDetection(chatBubbles)
+
 -- 焦点车辆碰撞检测
 collision_detector.setupPlayerCollisionDetection(chatBubbles, Sim)
