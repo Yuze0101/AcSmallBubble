@@ -1,5 +1,7 @@
 -- 碰撞检测模块
 local collision_detector = {}
+local config = require('config')
+local audio_manager = require('audio_manager')
 
 -- 为焦点车辆（玩家车辆）设置碰撞检测
 function collision_detector.setupPlayerCollisionDetection(chatBubbles, sim)
@@ -13,7 +15,7 @@ function collision_detector.setupPlayerCollisionDetection(chatBubbles, sim)
         if chatBubbles[carIndex] then
             local currentTime = os.clock()
             -- 检查上次撞击时间，确保不会连续触发
-            if currentTime - (chatBubbles[carIndex].lastHitTime or 0) > 0.5 then  -- 至少间隔0.5秒
+            if currentTime - (chatBubbles[carIndex].lastHitTime or 0) > config.collision.cooldown then  -- 至少间隔0.5秒
                 chatBubbles[carIndex].lastHitTime = currentTime
                 chatBubbles[carIndex].hitAnimationProgress = 1  -- 开始动画
                 
@@ -22,6 +24,9 @@ function collision_detector.setupPlayerCollisionDetection(chatBubbles, sim)
                 chatBubbles[carIndex].timestamp = currentTime
                 chatBubbles[carIndex].active = true
                 chatBubbles[carIndex].fadeTarget = 1
+                
+                -- 播放碰撞音效
+                audio_manager.play_collision_sound(carIndex)
             end
         end
         
@@ -46,7 +51,7 @@ function collision_detector.setupAllCarsCollisionDetection(chatBubbles)
         if chatBubbles[carIndex] then
             local currentTime = os.clock()
             -- 检查上次撞击时间，确保不会连续触发
-            if currentTime - (chatBubbles[carIndex].lastHitTime or 0) > 0.2 then  -- 至少间隔0.5秒
+            if currentTime - (chatBubbles[carIndex].lastHitTime or 0) > config.collision.cooldown then  -- 至少间隔0.5秒
                 chatBubbles[carIndex].lastHitTime = currentTime
                 chatBubbles[carIndex].hitAnimationProgress = 1  -- 开始动画
                 
@@ -55,6 +60,9 @@ function collision_detector.setupAllCarsCollisionDetection(chatBubbles)
                 chatBubbles[carIndex].timestamp = currentTime
                 chatBubbles[carIndex].active = true
                 chatBubbles[carIndex].fadeTarget = 1
+                
+                -- 播放碰撞音效
+                audio_manager.play_collision_sound(carIndex)
             end
         end
         

@@ -1,6 +1,7 @@
 -- 聊天气泡渲染模块
 local chat_bubble_renderer = {}
 local vehicle_data = require('vehicle_data')
+local config = require('config')
 
 -- 渲染聊天气泡
 function chat_bubble_renderer.renderBubble(CurrentlyProcessedCar, chatBubbles, driverData)
@@ -12,7 +13,7 @@ function chat_bubble_renderer.renderBubble(CurrentlyProcessedCar, chatBubbles, d
 
     -- 渲染消息文本（只有在气泡活跃时才显示）
     local displayMessage = ""
-    if bubble and bubble.active and (os.clock() - bubble.timestamp <= bubble.duration) then
+    if bubble and bubble.active and (os.clock() - bubble.timestamp <= config.bubble.duration) then
         displayMessage = bubble.message
     end
 
@@ -21,7 +22,7 @@ function chat_bubble_renderer.renderBubble(CurrentlyProcessedCar, chatBubbles, d
         rgb(1, 1, 1))
 
     ui.endOutline(0, 10)
-
+    ui.popDWriteFont()
     -- 渲染车手名字
     ui.pushDWriteFont('Poppins:Fonts/Poppins-Regular.ttf')
     ui.beginOutline()
@@ -36,30 +37,30 @@ function chat_bubble_renderer.renderBubble(CurrentlyProcessedCar, chatBubbles, d
     -- 渲染距离相关文本（仅当前车存在时）
     ui.beginOutline()
     local leadCarIndex, distance = vehicle_data.findLeadCar(carData.index)
-    
+
     -- 根据距离显示不同文本（分三行显示）
-    local closeText = ""      -- ≤ 5m
-    local mediumText = ""     -- 5m ~ 10m
-    local farText = ""        -- > 10m
-    
+    local closeText = ""  -- ≤ 5m
+    local mediumText = "" -- 5m ~ 10m
+    local farText = ""    -- > 10m
+
     if leadCarIndex and distance > 0 then
-        if distance <= 5 then
+        if distance <= config.distance_thresholds.close then
             closeText = "Oh！！！"
-        elseif distance > 5 and distance <= 10 then
+        elseif distance > config.distance_thresholds.close and distance <= config.distance_thresholds.medium then
             mediumText = "哈压库！哈压库！"
-        elseif distance > 10 then
+        elseif distance > config.distance_thresholds.medium then
             farText = "杂鱼~杂鱼"
         end
     else
         -- 如果没有前车，显示默认文本（远处）
         farText = "杂鱼~杂鱼"
     end
-    
+
     -- 显示三行文本（只有一行有内容，其他为空字符串）
     ui.dwriteTextAligned(closeText, 42, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 40), false, rgb(1, 0, 0))
     ui.dwriteTextAligned(mediumText, 42, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 40), false, rgb(1, 1, 0))
     ui.dwriteTextAligned(farText, 42, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 40), false, rgb(0, 1, 0))
-    
+
     ui.endOutline(0, 4)
 
     -- 使用预创建的GIFPlayer绘制左侧圆形AMD图标，使用 Images/amd.gif
@@ -85,10 +86,10 @@ function chat_bubble_renderer.renderBubble(CurrentlyProcessedCar, chatBubbles, d
 
     -- 根据距离选择要显示的图像
     local imageToDisplay = 'Images/A.png' -- 默认显示图像A（距离大于15米）
-    if distance and distance <= 5 then
-        imageToDisplay = 'Images/C.png' -- 距离5米以内显示图像C
-    elseif distance and distance <= 15 then
-        imageToDisplay = 'Images/B.png' -- 距离5-15米显示图像B
+    if distance and distance <= config.distance_thresholds.close then
+        imageToDisplay = 'Images/C.png'   -- 距离5米以内显示图像C
+    elseif distance and distance <= config.distance_thresholds.far then
+        imageToDisplay = 'Images/B.png'   -- 距离5-15米显示图像B
     end
 
     -- 计算撞击动画的缩放系数
@@ -110,7 +111,7 @@ function chat_bubble_renderer.renderBubble(CurrentlyProcessedCar, chatBubbles, d
     ui.drawImageRounded(imageToDisplay, topLeftAvatar, bottomRightAvatar, rgbm(1, 1, 1, 1), nil, nil, scaledRadius,
         ui.CornerFlags.All)
 
-    ui.popDWriteFont()
+
     ui.popDWriteFont()
 end
 
@@ -126,24 +127,25 @@ function chat_bubble_renderer.renderChatBubble(carData, driverData, chatBubbles,
     -- 检测距离阈值跨越以触发动画
     local _, currentDistance = vehicle_data.findLeadCar(carData.index)
     if currentDistance and currentDistance > 0 then
-        -- 检查是否跨越了5m、10m或15m的阈值
+        -- 检查是否跨越了设定的阈值
         local prevDistance = driverData[carData.index].prevDistance or 0
-        local thresholds = {5, 10, 15}  -- 阈值列表
-        
+        local thresholds = { config.distance_thresholds.close, config.distance_thresholds.medium, config
+            .distance_thresholds.far }                                                                                           -- 阈值列表
+
         for _, threshold in ipairs(thresholds) do
             -- 检查是否跨越了当前阈值
-            if (prevDistance <= threshold and currentDistance > threshold) or 
-               (prevDistance > threshold and currentDistance <= threshold) then
+            if (prevDistance <= threshold and currentDistance > threshold) or
+                (prevDistance > threshold and currentDistance <= threshold) then
                 -- 检查上次触发时间，防止动画过于频繁
                 local currentTime = os.clock()
                 if currentTime - (bubble.lastThresholdTime or 0) > 0.5 then
                     bubble.lastThresholdTime = currentTime
-                    bubble.hitAnimationProgress = 1  -- 开始动画
-                    break  -- 只触发一次动画
+                    bubble.hitAnimationProgress = 1 -- 开始动画
+                    break                           -- 只触发一次动画
                 end
             end
         end
-        
+
         -- 更新保存的距离值
         driverData[carData.index].prevDistance = currentDistance
     end
@@ -154,7 +156,7 @@ function chat_bubble_renderer.renderChatBubble(carData, driverData, chatBubbles,
     end
 
     -- 每隔一定时间更新一次画布，而不是使用车辆数量作为阈值
-    local updateTimeThreshold = 1.0 / 30 -- 目标更新频率为30 FPS
+    local updateTimeThreshold = 1.0 / config.render.fpsTarget -- 目标更新频率为30 FPS
     if driverData[carData.index].lastCanvasUpdateTime > updateTimeThreshold and driverData[carData.index].distanceToCamera < bubbleDistance then
         chatBubbles[carData.index].canvas:update(function()
             chat_bubble_renderer.renderBubble(CurrentlyProcessedCar,
@@ -184,7 +186,7 @@ function chat_bubble_renderer.renderChatBubble(carData, driverData, chatBubbles,
             chatBubbles[carData.index].fadeTarget = 1
         else
             -- 如果是活跃的真实消息，则显示气泡
-            if bubble and bubble.active and (os.clock() - bubble.timestamp <= bubble.duration) then
+            if bubble and bubble.active and (os.clock() - bubble.timestamp <= config.bubble.duration) then
                 chatBubbles[carData.index].fadeTarget = 1
             else
                 chatBubbles[carData.index].fadeTarget = 0

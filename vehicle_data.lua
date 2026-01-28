@@ -1,5 +1,6 @@
 -- 车辆数据管理模块
 local vehicle_data = {}
+local config = require('config')
 
 -- 初始化所有车辆的数据结构
 function vehicle_data.init(numberOfCars)
@@ -18,7 +19,7 @@ function vehicle_data.init(numberOfCars)
             fadeTarget = 0,
             message = "",   -- 当前消息
             timestamp = 0,  -- 消息接收时间
-            duration = 5,   -- 显示消息的持续时间（秒）
+            duration = config.bubble.duration,   -- 显示消息的持续时间（秒）
             active = false, -- 气泡是否处于活动状态
             gifPlayer = ui.GIFPlayer('Images/amd.gif'), -- 创建GIFPlayer实例
             lastHitTime = 0, -- 上次撞击时间
