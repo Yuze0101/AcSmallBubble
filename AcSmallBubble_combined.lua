@@ -1,5 +1,5 @@
 -- Auto-generated single file build
--- Generated at 2026-01-28 14:58:25
+-- Generated at 2026-01-28 15:21:09
 -- Original modules combined: utils, driverTable, render, main
 
 -- Define globals
@@ -15,7 +15,7 @@ Sim = nil
 
 --- @type table<integer, DriverData>
 local driverTable = {}
-
+ac.debug("driverTable", driverTable)
 --- @type function
 --- @param index integer
 local function updateDriverTableData(index)
@@ -115,7 +115,6 @@ if Sim.driverNamesShown == true then
     ui.onDriverNameTag(true, rgbm(1, 1, 1, 0.3), renderCustom)
 end
 
-
 local function getFocusedCar()
     if Sim.focusedCar ~= -1 then
         return ac.getCar(Sim.focusedCar)
@@ -124,6 +123,11 @@ local function getFocusedCar()
     end
 end
 
+local focusedCar = getFocusedCar()
+ac.debug("焦点车辆", focusedCar)
+
+
+
 function script.update(dt)
     -- 每frame 刷新更新车辆信息，如果没有就添加到表里, 为了表同步
     for index, car in ac.iterateCars() do
@@ -131,8 +135,7 @@ function script.update(dt)
     end
 
     -- 有焦点车辆时，计算距离
-    local focusedCar = getFocusedCar()
-    ac.debug("焦点车辆", focusedCar)
+
     if focusedCar then
         calculateDistance(focusedCar)
     end
