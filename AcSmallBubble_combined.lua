@@ -1,5 +1,5 @@
 -- Auto-generated single file build
--- Generated at 2026-01-29 13:25:42
+-- Generated at 2026-01-29 13:27:22
 -- Original modules combined: config, utils, driverTable, render, main
 
 -- Module: config
@@ -55,7 +55,7 @@ config.carDistance = {
     far = 15,
 }
 
--- Module: driverTable
+
 --- @class DriverData
 --- @field carInfo ac.StateCar
 --- @field chatMessage string
@@ -133,7 +133,6 @@ end
 
 
 -- Module: render
--
 --- @param carInfo ac.StateCar
 local function renderName(carInfo)
     ui.pushDWriteFont()
@@ -177,13 +176,12 @@ local function renderCustom(carData)
     if driverTable[carData.index] then
         local driverData = driverTable[carData.index]
         local canvas, carInfo, distance = driverData.canvas, driverData.carInfo, driverData.distance
-
-        -- 更新画布
-        canvas:update(function()
-            renderName(carInfo)
-            renderDistance(distance)
-            renderImage(distance)
-        end)
+        canvas:clear()
+            :update(function()
+                renderName(carInfo)
+                renderDistance(distance)
+                renderImage(distance)
+            end)
 
         -- 根据距离计算缩放和位置
         local scale = calculateScaleByDistance(distance)
