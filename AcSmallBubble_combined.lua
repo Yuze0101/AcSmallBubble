@@ -1,5 +1,5 @@
 -- Auto-generated single file build
--- Generated at 2026-01-29 13:46:45
+-- Generated at 2026-01-29 13:50:55
 -- Original modules combined: config, utils, driverTable, render, main
 
 -- Module: config
@@ -22,16 +22,16 @@ config.render = {
 
     --- 基础画布高度
     baseHeight = 500,
-
+    
     --- 驾驶员名字字体大小
     driverNameFontSize = 52,
-
+    
     --- 距离字体大小
     distanceFontSize = 42,
-
+    
     --- 驾驶员名字显示区域大小
     driverNameArea = vec2(1000, 60),
-
+    
     --- 距离显示区域大小
     distanceArea = vec2(1000, 40)
 }
@@ -54,7 +54,6 @@ config.carDistance = {
     mid = 10,
     far = 15,
 }
-
 
 
 --- @class DriverData
@@ -81,8 +80,7 @@ local function updateDriverTableData(index)
         driverTable[index] = {
             carInfo = carInfo,
             chatMessage = "",
-            canvas = ui.ExtraCanvas(vec2(config.render.baseWidth, config.render.baseHeight), 1,
-                render.AntialiasingMode.ExtraSharpCMAA),
+            canvas = ui.ExtraCanvas(vec2(config.render.baseWidth, config.render.baseHeight), 1, render.AntialiasingMode.ExtraSharpCMAA),
             distance = 0
         }
         return
@@ -161,18 +159,18 @@ end
 
 --- @param distance number
 local function renderImage(distance)
+    local imageSource = config.images.C
     if distance < config.carDistance.near then
-        if ui.isImageReady(config.images.A) then
-            ui.drawImage(config.images.A, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
-        end
+        imageSource = config.images.A
     elseif distance < config.carDistance.mid * 0.5 then
-        if ui.isImageReady(config.images.B) then
-            ui.drawImage(config.images.B, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
-        end
+        imageSource = config.images.B
     elseif distance < config.carDistance.far then
-        if ui.isImageReady(config.images.C) then
-            ui.drawImage(config.images.C, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
-        end
+        imageSource = config.images.C
+    end
+    local gifPlayer = ui.GIFPlayer(imageSource)
+    ac.debug("gifPlayer", gifPlayer)
+    if gifPlayer:ready() then
+        ui.drawImage(config.images.C, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
     end
 end
 --- @param carData ac.StateCar
@@ -198,9 +196,9 @@ local function renderCustom(carData)
     end
 end
 
--- Main module:
 
-Sim = ac.getSim()
+
+Sim                                      = ac.getSim()
 
 if Sim.driverNamesShown == true then
     ui.onDriverNameTag(true, rgbm(1, 1, 1, 0.7), renderCustom, {
