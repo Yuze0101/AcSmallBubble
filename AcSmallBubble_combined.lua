@@ -64,9 +64,9 @@ config.carDistance = {
 local resource = "https://hub.rotown.cn/scripts/Images.zip"
 web.loadRemoteAssets(resource, function(error, folder)
     ac.debug("loadRemoteAssets folder", folder)
-    config.localImageAssets.A = folder .. "/A.png"
-    config.localImageAssets.B = folder .. "/B.png"
-    config.localImageAssets.C = folder .. "/C.png"
+    config.localImageAssets.A = folder .. "\\" .. "A.png"
+    config.localImageAssets.B = folder .. "\\" .. "B.png"
+    config.localImageAssets.C = folder .. "\\" .. "C.png"
 end)
 
 
