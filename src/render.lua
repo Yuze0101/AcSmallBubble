@@ -5,7 +5,8 @@ local calculateDistance, calculateScaleByDistance, calculateDrawPosition = requi
 
 --- @param carInfo ac.StateCar
 local function renderName(carInfo)
-    ui.pushDWriteFont()
+    local font = ui.DWriteFont("Segoe UI"):weight(ui.DWriteFont.Weight.Regular)
+    ui.pushDWriteFont(font)
     ui.beginOutline()
     -- 居中渲染消息文本
     ui.dwriteTextAligned(carInfo:driverName(), config.render.driverNameFontSize, ui.Alignment.Center, ui.Alignment
@@ -17,7 +18,8 @@ end
 
 --- @param distance number
 local function renderDistance(distance)
-    ui.pushDWriteFont()
+    local font = ui.DWriteFont("Segoe UI"):weight(ui.DWriteFont.Weight.Light)
+    ui.pushDWriteFont(font)
     ui.dwriteTextAligned(string.format("%.1f", distance), config.render.distanceFontSize, ui.Alignment.Center,
         ui.Alignment.Center,
         config.render.distanceArea, false, rgbm(1, 1, 1, 1))

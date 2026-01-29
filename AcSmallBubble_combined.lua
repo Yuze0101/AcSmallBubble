@@ -1,5 +1,5 @@
 -- Auto-generated single file build
--- Generated at 2026-01-29 13:27:22
+-- Generated at 2026-01-29 13:46:45
 -- Original modules combined: config, utils, driverTable, render, main
 
 -- Module: config
@@ -22,16 +22,16 @@ config.render = {
 
     --- 基础画布高度
     baseHeight = 500,
-    
+
     --- 驾驶员名字字体大小
     driverNameFontSize = 52,
-    
+
     --- 距离字体大小
     distanceFontSize = 42,
-    
+
     --- 驾驶员名字显示区域大小
     driverNameArea = vec2(1000, 60),
-    
+
     --- 距离显示区域大小
     distanceArea = vec2(1000, 40)
 }
@@ -54,6 +54,7 @@ config.carDistance = {
     mid = 10,
     far = 15,
 }
+
 
 
 --- @class DriverData
@@ -80,7 +81,8 @@ local function updateDriverTableData(index)
         driverTable[index] = {
             carInfo = carInfo,
             chatMessage = "",
-            canvas = ui.ExtraCanvas(vec2(config.render.baseWidth, config.render.baseHeight), 1, render.AntialiasingMode.ExtraSharpCMAA),
+            canvas = ui.ExtraCanvas(vec2(config.render.baseWidth, config.render.baseHeight), 1,
+                render.AntialiasingMode.ExtraSharpCMAA),
             distance = 0
         }
         return
@@ -135,7 +137,8 @@ end
 -- Module: render
 --- @param carInfo ac.StateCar
 local function renderName(carInfo)
-    ui.pushDWriteFont()
+    local font = ui.DWriteFont("Segoe UI"):weight(ui.DWriteFont.Weight.Regular)
+    ui.pushDWriteFont(font)
     ui.beginOutline()
     -- 居中渲染消息文本
     ui.dwriteTextAligned(carInfo:driverName(), config.render.driverNameFontSize, ui.Alignment.Center, ui.Alignment
@@ -147,7 +150,8 @@ end
 
 --- @param distance number
 local function renderDistance(distance)
-    ui.pushDWriteFont()
+    local font = ui.DWriteFont("Segoe UI"):weight(ui.DWriteFont.Weight.Light)
+    ui.pushDWriteFont(font)
     ui.dwriteTextAligned(string.format("%.1f", distance), config.render.distanceFontSize, ui.Alignment.Center,
         ui.Alignment.Center,
         config.render.distanceArea, false, rgbm(1, 1, 1, 1))
@@ -196,7 +200,7 @@ end
 
 -- Main module:
 
-Sim                                      = ac.getSim()
+Sim = ac.getSim()
 
 if Sim.driverNamesShown == true then
     ui.onDriverNameTag(true, rgbm(1, 1, 1, 0.7), renderCustom, {
