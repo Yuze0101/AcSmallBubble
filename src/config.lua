@@ -43,11 +43,6 @@ config.images = {
     C = 'http://youke.xn--y7xa690gmna.cn/s1/2026/01/28/69797249dbbc5.webp', -- 距离5米以内显示图像C
 }
 
-config.localImageAssets = {
-    A = "",
-    B = "",
-    C = ""
-}
 
 --- 车辆的距离
 config.carDistance = {
@@ -55,14 +50,6 @@ config.carDistance = {
     mid = 10,
     far = 15,
 }
-
-local resource = "https://hub.rotown.cn/scripts/Images.zip"
-web.loadRemoteAssets(resource, function(error, folder)
-    ac.debug("loadRemoteAssets folder", folder)
-    config.localImageAssets.A = folder .. "\\" .. "A.png"
-    config.localImageAssets.B = folder .. "\\" .. "B.png"
-    config.localImageAssets.C = folder .. "\\" .. "C.png"
-end)
 
 
 

@@ -29,17 +29,23 @@ end
 
 --- @param distance number
 local function renderImage(distance)
-    local imageSource = config.images.C
-    ac.debug("localImageAssets", config.localImageAssets)
+    local imageSource = config.images.A
     if distance < config.carDistance.near then
-        imageSource = config.localImageAssets.A
+        imageSource = config.images.C
     elseif distance < config.carDistance.mid then
-        imageSource = config.localImageAssets.B
-    elseif distance < config.carDistance.far then
-        imageSource = config.localImageAssets.C
+        imageSource = config.images.B
+    else
+        imageSource = config.images.A
     end
     if ui.isImageReady(imageSource) then
-        ui.drawImage(imageSource, vec2(0, 100), vec2(800, 300), rgbm.colors.white)
+        local size = ui.imageSize(imageSource)
+        local width = 800
+        local height = size.y / size.x * width
+        local screenWidth = config.render.baseWidth
+        local screenHeight = config.render.baseHeight
+        local posX = (screenWidth - width) / 2
+        local posY = screenHeight - height - 20 -- 20像素边距
+        ui.drawImage(imageSource, vec2(posX, posY), vec2(posX + width, posY + height), rgbm.colors.white)
     end
 end
 

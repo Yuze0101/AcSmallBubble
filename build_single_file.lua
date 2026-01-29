@@ -80,7 +80,7 @@ local function build()
     output_content = output_content .. main_content
     
     -- 写入输出文件
-    local output_file = "./AcSmallBubble_combined.lua"
+    local output_file = "./AcSmallBubble.lua"
     print("正在写入合并后的文件: " .. output_file)
     write_file(output_file, output_content)
     
