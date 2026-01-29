@@ -1,5 +1,5 @@
 -- Auto-generated single file build
--- Generated at 2026-01-29 14:55:21
+-- Generated at 2026-01-29 15:12:56
 -- Original modules combined: config, utils, driverTable, render, main
 
 -- Module: config
@@ -61,14 +61,14 @@ config.carDistance = {
     far = 15,
 }
 
-for k, v in pairs(config.images) do
-    web.loadRemoteAssets(v, function(error, folder)
-        ac.debug("loadRemoteAssets folder", folder)
-        config.localImageAssets[k] = folder
-    end)
-end
+local resource = "https://hub.rotown.cn/scripts/Images.zip"
+web.loadRemoteAssets(resource, function(error, folder)
+    ac.debug("loadRemoteAssets folder", folder)
+    config.localImageAssets.A = folder .. "A.png"
+    config.localImageAssets.B = folder .. "B.png"
+    config.localImageAssets.C = folder .. "C.png"
+end)
 
--- Module: driverTable
 
 --- @class DriverData
 --- @field carInfo ac.StateCar
@@ -94,7 +94,8 @@ local function updateDriverTableData(index)
         driverTable[index] = {
             carInfo = carInfo,
             chatMessage = "",
-            canvas = ui.ExtraCanvas(vec2(config.render.baseWidth, config.render.baseHeight), 1, render.AntialiasingMode.ExtraSharpCMAA),
+            canvas = ui.ExtraCanvas(vec2(config.render.baseWidth, config.render.baseHeight), 1,
+                render.AntialiasingMode.ExtraSharpCMAA),
             distance = 0
         }
         return
@@ -182,10 +183,7 @@ local function renderImage(distance)
     elseif distance < config.carDistance.far then
         imageSource = config.images.C
     end
-    local gifPlayer = ui.GIFPlayer(imageSource)
-    if gifPlayer:ready() then
-        ui.drawImage(gifPlayer, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
-    end
+    ui.drawImage(imageSource, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
 end
 --- @param carData ac.StateCar
 local function renderCustom(carData)
@@ -210,10 +208,10 @@ local function renderCustom(carData)
     end
 end
 
--- Main module:
 
 
-local Sim                                = ac.getSim()
+
+local Sim = ac.getSim()
 
 if Sim.driverNamesShown == true then
     ui.onDriverNameTag(true, rgbm(1, 1, 1, 0.7), renderCustom, {
