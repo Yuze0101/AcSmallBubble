@@ -30,17 +30,17 @@ end
 --- @param distance number
 local function renderImage(distance)
     local imageSource = config.images.C
+    ac.debug("localImageAssets", config.localImageAssets)
     if distance < config.carDistance.near then
         imageSource = config.images.A
-    elseif distance < config.carDistance.mid * 0.5 then
+    elseif distance < config.carDistance.mid then
         imageSource = config.images.B
     elseif distance < config.carDistance.far then
         imageSource = config.images.C
     end
     local gifPlayer = ui.GIFPlayer(imageSource)
-    ac.debug("gifPlayer", gifPlayer)
     if gifPlayer:ready() then
-        ui.drawImage(config.images.C, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
+        ui.drawImage(gifPlayer, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
     end
 end
 --- @param carData ac.StateCar

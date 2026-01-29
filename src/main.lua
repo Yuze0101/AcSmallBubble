@@ -4,9 +4,9 @@ local calculateDistance, _, _            = require "utils"
 ---@type table<integer, DriverData>, fun(index: integer)
 local driverTable, updateDriverTableData = require "driverTable"
 
-local config = require "config"
+local config                             = require "config"
 
-Sim                                      = ac.getSim()
+local Sim                                = ac.getSim()
 
 if Sim.driverNamesShown == true then
     ui.onDriverNameTag(true, rgbm(1, 1, 1, 0.7), renderCustom, {
@@ -22,6 +22,8 @@ local function getFocusedCar()
         return nil
     end
 end
+
+
 
 function script.update(dt)
     -- 每frame 刷新更新车辆信息，如果没有就添加到表里, 为了表同步
