@@ -1,5 +1,5 @@
 -- Auto-generated single file build
--- Generated at 2026-01-29 13:50:55
+-- Generated at 2026-01-29 14:53:49
 -- Original modules combined: config, utils, driverTable, render, main
 
 -- Module: config
@@ -22,16 +22,16 @@ config.render = {
 
     --- 基础画布高度
     baseHeight = 500,
-    
+
     --- 驾驶员名字字体大小
     driverNameFontSize = 52,
-    
+
     --- 距离字体大小
     distanceFontSize = 42,
-    
+
     --- 驾驶员名字显示区域大小
     driverNameArea = vec2(1000, 60),
-    
+
     --- 距离显示区域大小
     distanceArea = vec2(1000, 40)
 }
@@ -48,6 +48,12 @@ config.images = {
     C = 'http://youke.xn--y7xa690gmna.cn/s1/2026/01/28/69797249dbbc5.webp', -- 距离5米以内显示图像C
 }
 
+config.localImageAssets = {
+    A = "",
+    B = "",
+    C = ""
+}
+
 --- 车辆的距离
 config.carDistance = {
     near = 5,
@@ -55,6 +61,15 @@ config.carDistance = {
     far = 15,
 }
 
+for k, v in pairs(config.images) do
+    web.loadRemoteAssets(v, function(error, folder)
+        ac.debug("loadRemoteAssets folder", folder)
+        config.localImageAssets[k] = folder
+    end)
+end
+
+-- Module: driverTable
+local config = require "config"
 
 --- @class DriverData
 --- @field carInfo ac.StateCar
@@ -80,7 +95,8 @@ local function updateDriverTableData(index)
         driverTable[index] = {
             carInfo = carInfo,
             chatMessage = "",
-            canvas = ui.ExtraCanvas(vec2(config.render.baseWidth, config.render.baseHeight), 1, render.AntialiasingMode.ExtraSharpCMAA),
+            canvas = ui.ExtraCanvas(vec2(config.render.baseWidth, config.render.baseHeight), 1,
+                render.AntialiasingMode.ExtraSharpCMAA),
             distance = 0
         }
         return
@@ -160,17 +176,17 @@ end
 --- @param distance number
 local function renderImage(distance)
     local imageSource = config.images.C
+    ac.debug("localImageAssets", config.localImageAssets)
     if distance < config.carDistance.near then
         imageSource = config.images.A
-    elseif distance < config.carDistance.mid * 0.5 then
+    elseif distance < config.carDistance.mid then
         imageSource = config.images.B
     elseif distance < config.carDistance.far then
         imageSource = config.images.C
     end
     local gifPlayer = ui.GIFPlayer(imageSource)
-    ac.debug("gifPlayer", gifPlayer)
     if gifPlayer:ready() then
-        ui.drawImage(config.images.C, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
+        ui.drawImage(gifPlayer, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
     end
 end
 --- @param carData ac.StateCar
@@ -196,9 +212,10 @@ local function renderCustom(carData)
     end
 end
 
+-- Main module:
 
 
-Sim                                      = ac.getSim()
+local Sim = ac.getSim()
 
 if Sim.driverNamesShown == true then
     ui.onDriverNameTag(true, rgbm(1, 1, 1, 0.7), renderCustom, {
@@ -214,6 +231,8 @@ local function getFocusedCar()
         return nil
     end
 end
+
+
 
 function script.update(dt)
     -- 每frame 刷新更新车辆信息，如果没有就添加到表里, 为了表同步
