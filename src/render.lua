@@ -29,18 +29,18 @@ end
 
 --- @param distance number
 local function renderImage(distance)
+    local imageSource = config.images.C
     if distance < config.carDistance.near then
-        if ui.isImageReady(config.images.A) then
-            ui.drawImage(config.images.A, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
-        end
+        imageSource = config.images.A
     elseif distance < config.carDistance.mid * 0.5 then
-        if ui.isImageReady(config.images.B) then
-            ui.drawImage(config.images.B, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
-        end
+        imageSource = config.images.B
     elseif distance < config.carDistance.far then
-        if ui.isImageReady(config.images.C) then
-            ui.drawImage(config.images.C, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
-        end
+        imageSource = config.images.C
+    end
+    local gifPlayer = ui.GIFPlayer(imageSource)
+    ac.debug("gifPlayer", gifPlayer)
+    if gifPlayer:ready() then
+        ui.drawImage(config.images.C, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
     end
 end
 --- @param carData ac.StateCar
