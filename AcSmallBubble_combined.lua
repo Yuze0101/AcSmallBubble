@@ -177,11 +177,11 @@ local function renderImage(distance)
     local imageSource = config.images.C
     ac.debug("localImageAssets", config.localImageAssets)
     if distance < config.carDistance.near then
-        imageSource = config.images.A
+        imageSource = config.localImageAssets.A
     elseif distance < config.carDistance.mid then
-        imageSource = config.images.B
+        imageSource = config.localImageAssets.B
     elseif distance < config.carDistance.far then
-        imageSource = config.images.C
+        imageSource = config.localImageAssets.C
     end
     ui.drawImage(imageSource, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
 end
