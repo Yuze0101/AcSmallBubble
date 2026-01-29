@@ -69,7 +69,6 @@ for k, v in pairs(config.images) do
 end
 
 -- Module: driverTable
-local config = require "config"
 
 --- @class DriverData
 --- @field carInfo ac.StateCar
