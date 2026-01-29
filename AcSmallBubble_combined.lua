@@ -183,7 +183,8 @@ local function renderImage(distance)
     elseif distance < config.carDistance.far then
         imageSource = config.localImageAssets.C
     end
-    ui.drawImage(imageSource, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
+    ui.drawImage(imageSource, vec2(0, 100), vec2(800, 300), rgbm.colors.white)
+    ui.image(imageSource, vec2(300, 200), ui.ImageFit.Stretch)
 end
 --- @param carData ac.StateCar
 local function renderCustom(carData)
