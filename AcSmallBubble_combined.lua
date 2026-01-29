@@ -1,5 +1,5 @@
 -- Auto-generated single file build
--- Generated at 2026-01-28 17:32:58
+-- Generated at 2026-01-29 10:42:26
 -- Original modules combined: config, utils, driverTable, render, main
 
 -- Module: config
@@ -126,7 +126,7 @@ end
 -- Module: render
 --- @param carInfo ac.StateCar
 local function renderName(carInfo)
-    ui.pushDWriteFont()
+    ui.pushDWriteFont("@System")
     ui.beginOutline()
     -- 居中渲染消息文本
     ui.dwriteTextAligned(carInfo:driverName(), 52, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 80), false,
@@ -137,7 +137,7 @@ end
 
 --- @param distance number
 local function renderDistance(distance)
-    ui.pushDWriteFont()
+    ui.pushDWriteFont("@System")
     ui.dwriteTextAligned(string.format("%.1f", distance), 42, ui.Alignment.Center, ui.Alignment.Center,
         vec2(1000, 80), false, rgbm(1, 1, 1, 1))
     ui.endOutline(rgbm(1, 1, 1, 0.1))
