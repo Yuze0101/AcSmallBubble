@@ -1,5 +1,5 @@
 -- Auto-generated single file build
--- Generated at 2026-01-29 14:53:49
+-- Generated at 2026-01-29 14:55:21
 -- Original modules combined: config, utils, driverTable, render, main
 
 -- Module: config
@@ -95,8 +95,7 @@ local function updateDriverTableData(index)
         driverTable[index] = {
             carInfo = carInfo,
             chatMessage = "",
-            canvas = ui.ExtraCanvas(vec2(config.render.baseWidth, config.render.baseHeight), 1,
-                render.AntialiasingMode.ExtraSharpCMAA),
+            canvas = ui.ExtraCanvas(vec2(config.render.baseWidth, config.render.baseHeight), 1, render.AntialiasingMode.ExtraSharpCMAA),
             distance = 0
         }
         return
@@ -215,7 +214,7 @@ end
 -- Main module:
 
 
-local Sim = ac.getSim()
+local Sim                                = ac.getSim()
 
 if Sim.driverNamesShown == true then
     ui.onDriverNameTag(true, rgbm(1, 1, 1, 0.7), renderCustom, {
