@@ -5,20 +5,22 @@ local calculateDistance, calculateScaleByDistance, calculateDrawPosition = requi
 
 --- @param carInfo ac.StateCar
 local function renderName(carInfo)
-    ui.pushDWriteFont("@System")
+    ui.pushDWriteFont()
     ui.beginOutline()
     -- 居中渲染消息文本
-    ui.dwriteTextAligned(carInfo:driverName(), 52, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 80), false,
-        rgbm(1, 1, 1, 1))
+    ui.dwriteTextAligned(carInfo:driverName(), config.render.driverNameFontSize, ui.Alignment.Center, ui.Alignment
+        .Center,
+        config.render.driverNameArea, false, rgbm(1, 1, 1, 1))
     ui.endOutline(rgbm(1, 1, 1, 0.1))
     ui.popDWriteFont()
 end
 
 --- @param distance number
 local function renderDistance(distance)
-    ui.pushDWriteFont("@System")
-    ui.dwriteTextAligned(string.format("%.1f", distance), 42, ui.Alignment.Center, ui.Alignment.Center,
-        vec2(1000, 80), false, rgbm(1, 1, 1, 1))
+    ui.pushDWriteFont()
+    ui.dwriteTextAligned(string.format("%.1f", distance), config.render.distanceFontSize, ui.Alignment.Center,
+        ui.Alignment.Center,
+        config.render.distanceArea, false, rgbm(1, 1, 1, 1))
     ui.endOutline(rgbm(1, 1, 1, 0.1))
     ui.popDWriteFont()
 end
@@ -27,20 +29,18 @@ end
 local function renderImage(distance)
     if distance < config.carDistance.near then
         if ui.isImageReady(config.images.A) then
-            ui.drawImage(config.images.A, vec2(1000, 240), vec2(1200, 240), rgbm(1, 1, 1, 1))
+            ui.drawImage(config.images.A, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
         end
     elseif distance < config.carDistance.mid * 0.5 then
         if ui.isImageReady(config.images.B) then
-            ui.drawImage(config.images.B, vec2(1000, 240), vec2(1200, 240), rgbm(1, 1, 1, 1))
+            ui.drawImage(config.images.B, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
         end
     elseif distance < config.carDistance.far then
         if ui.isImageReady(config.images.C) then
-            ui.drawImage(config.images.C, vec2(1000, 240), vec2(1200, 240), rgbm(1, 1, 1, 1))
+            ui.drawImage(config.images.C, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
         end
     end
 end
-
-
 --- @param carData ac.StateCar
 local function renderCustom(carData)
     if driverTable[carData.index] then

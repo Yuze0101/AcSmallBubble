@@ -1,14 +1,16 @@
 local renderCustom                       = require "render"
-local calculateDistance                  = require "utils"
+local calculateDistance, _, _            = require "utils"
 
 ---@type table<integer, DriverData>, fun(index: integer)
 local driverTable, updateDriverTableData = require "driverTable"
 
-local Sim                                = ac.getSim()
+local config = require "config"
+
+Sim                                      = ac.getSim()
 
 if Sim.driverNamesShown == true then
     ui.onDriverNameTag(true, rgbm(1, 1, 1, 0.7), renderCustom, {
-        tagSize = vec2(1000, 200)
+        tagSize = config.ui.driverTagSize
     })
 end
 

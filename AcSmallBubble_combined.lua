@@ -1,5 +1,5 @@
 -- Auto-generated single file build
--- Generated at 2026-01-29 11:56:05
+-- Generated at 2026-01-29 13:22:24
 -- Original modules combined: config, utils, driverTable, render, main
 
 -- Module: config
@@ -15,19 +15,31 @@ config.render = {
     minScale = 0.3,
 
     --- 最大缩放比例（最近距离时的缩放）
-    maxScale = 1.5,
+    maxScale = 1,
 
     --- 基础画布宽度
     baseWidth = 1200,
 
     --- 基础画布高度
     baseHeight = 240,
+    
+    --- 驾驶员名字字体大小
+    driverNameFontSize = 52,
+    
+    --- 距离字体大小
+    distanceFontSize = 42,
+    
+    --- 驾驶员名字显示区域大小
+    driverNameArea = vec2(1000, 60),
+    
+    --- 距离显示区域大小
+    distanceArea = vec2(1000, 40)
+}
 
-    --- 中心X坐标
-    centerX = 1000,
-
-    --- 中心Y坐标
-    centerY = 100
+--- UI标签配置
+config.ui = {
+    --- 驾驶员标签大小
+    driverTagSize = vec2(1000, 500)
 }
 
 config.images = {
@@ -68,14 +80,13 @@ local function updateDriverTableData(index)
         driverTable[index] = {
             carInfo = carInfo,
             chatMessage = "",
-            canvas = ui.ExtraCanvas(vec2(1200, 240), 1, render.AntialiasingMode.ExtraSharpCMAA),
+            canvas = ui.ExtraCanvas(vec2(config.render.baseWidth, config.render.baseHeight), 1, render.AntialiasingMode.ExtraSharpCMAA),
             distance = 0
         }
         return
     end
     ac.debug("driverTable", driverTable)
 end
-
 
 
 
@@ -110,14 +121,12 @@ end
 local function calculateDrawPosition(scale)
     local baseWidth = config.render.baseWidth
     local baseHeight = config.render.baseHeight
-    local centerX = config.render.centerX
-    local centerY = config.render.centerY
 
     local scaledWidth = baseWidth * scale
     local scaledHeight = baseHeight * scale
 
-    local p1 = vec2(centerX - scaledWidth / 2, centerY - scaledHeight / 2)
-    local p2 = vec2(centerX + scaledWidth / 2, centerY + scaledHeight / 2)
+    local p1 = vec2((baseWidth - scaledWidth) / 2, (baseHeight - scaledHeight) / 2)
+    local p2 = vec2((baseWidth + scaledWidth) / 2, (baseHeight + scaledHeight) / 2)
 
     return p1, p2
 end
@@ -126,20 +135,22 @@ end
 -- Module: render
 --- @param carInfo ac.StateCar
 local function renderName(carInfo)
-    ui.pushDWriteFont("@System")
+    ui.pushDWriteFont()
     ui.beginOutline()
     -- 居中渲染消息文本
-    ui.dwriteTextAligned(carInfo:driverName(), 52, ui.Alignment.Center, ui.Alignment.Center, vec2(1000, 80), false,
-        rgbm(1, 1, 1, 1))
+    ui.dwriteTextAligned(carInfo:driverName(), config.render.driverNameFontSize, ui.Alignment.Center, ui.Alignment
+        .Center,
+        config.render.driverNameArea, false, rgbm(1, 1, 1, 1))
     ui.endOutline(rgbm(1, 1, 1, 0.1))
     ui.popDWriteFont()
 end
 
 --- @param distance number
 local function renderDistance(distance)
-    ui.pushDWriteFont("@System")
-    ui.dwriteTextAligned(string.format("%.1f", distance), 42, ui.Alignment.Center, ui.Alignment.Center,
-        vec2(1000, 80), false, rgbm(1, 1, 1, 1))
+    ui.pushDWriteFont()
+    ui.dwriteTextAligned(string.format("%.1f", distance), config.render.distanceFontSize, ui.Alignment.Center,
+        ui.Alignment.Center,
+        config.render.distanceArea, false, rgbm(1, 1, 1, 1))
     ui.endOutline(rgbm(1, 1, 1, 0.1))
     ui.popDWriteFont()
 end
@@ -148,20 +159,18 @@ end
 local function renderImage(distance)
     if distance < config.carDistance.near then
         if ui.isImageReady(config.images.A) then
-            ui.drawImage(config.images.A, vec2(1000, 240), vec2(1200, 240), rgbm(1, 1, 1, 1))
+            ui.drawImage(config.images.A, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
         end
     elseif distance < config.carDistance.mid * 0.5 then
         if ui.isImageReady(config.images.B) then
-            ui.drawImage(config.images.B, vec2(1000, 240), vec2(1200, 240), rgbm(1, 1, 1, 1))
+            ui.drawImage(config.images.B, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
         end
     elseif distance < config.carDistance.far then
         if ui.isImageReady(config.images.C) then
-            ui.drawImage(config.images.C, vec2(1000, 240), vec2(1200, 240), rgbm(1, 1, 1, 1))
+            ui.drawImage(config.images.C, vec2(0, 100), vec2(800, 300), rgbm(1, 1, 1, 1))
         end
     end
 end
-
-
 --- @param carData ac.StateCar
 local function renderCustom(carData)
     if driverTable[carData.index] then
@@ -188,11 +197,11 @@ end
 
 -- Main module:
 
-local Sim                                = ac.getSim()
+local Sim                                      = ac.getSim()
 
 if Sim.driverNamesShown == true then
     ui.onDriverNameTag(true, rgbm(1, 1, 1, 0.7), renderCustom, {
-        tagSize = vec2(1000, 500)
+        tagSize = config.ui.driverTagSize
     })
 end
 

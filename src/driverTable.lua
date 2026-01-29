@@ -1,3 +1,5 @@
+local config = require "config"
+
 --- @class DriverData
 --- @field carInfo ac.StateCar
 --- @field chatMessage string
@@ -22,7 +24,7 @@ local function updateDriverTableData(index)
         driverTable[index] = {
             carInfo = carInfo,
             chatMessage = "",
-            canvas = ui.ExtraCanvas(vec2(1200, 240), 1, render.AntialiasingMode.ExtraSharpCMAA),
+            canvas = ui.ExtraCanvas(vec2(config.render.baseWidth, config.render.baseHeight), 1, render.AntialiasingMode.ExtraSharpCMAA),
             distance = 0
         }
         return

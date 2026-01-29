@@ -31,14 +31,12 @@ end
 local function calculateDrawPosition(scale)
     local baseWidth = config.render.baseWidth
     local baseHeight = config.render.baseHeight
-    local centerX = config.render.centerX
-    local centerY = config.render.centerY
 
     local scaledWidth = baseWidth * scale
     local scaledHeight = baseHeight * scale
 
-    local p1 = vec2(centerX - scaledWidth / 2, centerY - scaledHeight / 2)
-    local p2 = vec2(centerX + scaledWidth / 2, centerY + scaledHeight / 2)
+    local p1 = vec2((baseWidth - scaledWidth) / 2, (baseHeight - scaledHeight) / 2)
+    local p2 = vec2((baseWidth + scaledWidth) / 2, (baseHeight + scaledHeight) / 2)
 
     return p1, p2
 end

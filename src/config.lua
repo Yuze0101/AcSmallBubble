@@ -10,19 +10,31 @@ config.render = {
     minScale = 0.3,
 
     --- 最大缩放比例（最近距离时的缩放）
-    maxScale = 1.5,
+    maxScale = 1,
 
     --- 基础画布宽度
     baseWidth = 1200,
 
     --- 基础画布高度
     baseHeight = 240,
+    
+    --- 驾驶员名字字体大小
+    driverNameFontSize = 52,
+    
+    --- 距离字体大小
+    distanceFontSize = 42,
+    
+    --- 驾驶员名字显示区域大小
+    driverNameArea = vec2(1000, 60),
+    
+    --- 距离显示区域大小
+    distanceArea = vec2(1000, 40)
+}
 
-    --- 中心X坐标
-    centerX = 1000,
-
-    --- 中心Y坐标
-    centerY = 100
+--- UI标签配置
+config.ui = {
+    --- 驾驶员标签大小
+    driverTagSize = vec2(1000, 500)
 }
 
 config.images = {
