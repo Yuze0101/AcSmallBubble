@@ -4,10 +4,12 @@ local calculateDistance                  = require "utils"
 ---@type table<integer, DriverData>, fun(index: integer)
 local driverTable, updateDriverTableData = require "driverTable"
 
-local Sim                                      = ac.getSim()
+local Sim                                = ac.getSim()
 
 if Sim.driverNamesShown == true then
-    ui.onDriverNameTag(true, rgbm(1, 1, 1, 0.3), renderCustom)
+    ui.onDriverNameTag(true, rgbm(1, 1, 1, 0.7), renderCustom, {
+        tagSize = vec2(1000, 200)
+    })
 end
 
 

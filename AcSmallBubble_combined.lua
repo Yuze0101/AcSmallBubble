@@ -1,5 +1,5 @@
 -- Auto-generated single file build
--- Generated at 2026-01-29 10:42:26
+-- Generated at 2026-01-29 11:56:05
 -- Original modules combined: config, utils, driverTable, render, main
 
 -- Module: config
@@ -188,10 +188,12 @@ end
 
 -- Main module:
 
-local Sim                                      = ac.getSim()
+local Sim                                = ac.getSim()
 
 if Sim.driverNamesShown == true then
-    ui.onDriverNameTag(true, rgbm(1, 1, 1, 0.3), renderCustom)
+    ui.onDriverNameTag(true, rgbm(1, 1, 1, 0.7), renderCustom, {
+        tagSize = vec2(1000, 500)
+    })
 end
 
 
