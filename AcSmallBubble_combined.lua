@@ -1,5 +1,5 @@
 -- Auto-generated single file build
--- Generated at 2026-01-29 13:22:24
+-- Generated at 2026-01-29 13:25:42
 -- Original modules combined: config, utils, driverTable, render, main
 
 -- Module: config
@@ -21,7 +21,7 @@ config.render = {
     baseWidth = 1200,
 
     --- 基础画布高度
-    baseHeight = 240,
+    baseHeight = 500,
     
     --- 驾驶员名字字体大小
     driverNameFontSize = 52,
@@ -133,6 +133,7 @@ end
 
 
 -- Module: render
+-
 --- @param carInfo ac.StateCar
 local function renderName(carInfo)
     ui.pushDWriteFont()
@@ -197,7 +198,7 @@ end
 
 -- Main module:
 
-local Sim                                      = ac.getSim()
+Sim                                      = ac.getSim()
 
 if Sim.driverNamesShown == true then
     ui.onDriverNameTag(true, rgbm(1, 1, 1, 0.7), renderCustom, {

@@ -16,7 +16,7 @@ config.render = {
     baseWidth = 1200,
 
     --- 基础画布高度
-    baseHeight = 240,
+    baseHeight = 500,
     
     --- 驾驶员名字字体大小
     driverNameFontSize = 52,
