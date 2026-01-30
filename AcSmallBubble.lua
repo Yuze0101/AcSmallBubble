@@ -1,5 +1,5 @@
 -- Auto-generated single file build
--- Generated at 2026-01-29 15:12:56
+-- Generated at 2026-01-30 11:08:47
 -- Original modules combined: config, utils, driverTable, render, main
 
 -- Module: config
@@ -48,11 +48,6 @@ config.images = {
     C = 'http://youke.xn--y7xa690gmna.cn/s1/2026/01/28/69797249dbbc5.webp', -- 距离5米以内显示图像C
 }
 
-config.localImageAssets = {
-    A = "",
-    B = "",
-    C = ""
-}
 
 --- 车辆的距离
 config.carDistance = {
@@ -61,15 +56,7 @@ config.carDistance = {
     far = 15,
 }
 
-local resource = "https://hub.rotown.cn/scripts/Images.zip"
-web.loadRemoteAssets(resource, function(error, folder)
-    ac.debug("loadRemoteAssets folder", folder)
-    config.localImageAssets.A = folder .. "\\" .. "A.png"
-    config.localImageAssets.B = folder .. "\\" .. "B.png"
-    config.localImageAssets.C = folder .. "\\" .. "C.png"
-end)
-
-
+-- Module: driverTable
 --- @class DriverData
 --- @field carInfo ac.StateCar
 --- @field chatMessage string
@@ -94,8 +81,7 @@ local function updateDriverTableData(index)
         driverTable[index] = {
             carInfo = carInfo,
             chatMessage = "",
-            canvas = ui.ExtraCanvas(vec2(config.render.baseWidth, config.render.baseHeight), 1,
-                render.AntialiasingMode.ExtraSharpCMAA),
+            canvas = ui.ExtraCanvas(vec2(config.render.baseWidth, config.render.baseHeight), 1, render.AntialiasingMode.ExtraSharpCMAA),
             distance = 0
         }
         return
@@ -193,6 +179,7 @@ local function renderImage(distance)
         ui.drawImage(imageSource, vec2(posX, posY), vec2(posX + width, posY + height), rgbm.colors.white)
     end
 end
+
 --- @param carData ac.StateCar
 local function renderCustom(carData)
     if driverTable[carData.index] then
@@ -216,10 +203,9 @@ local function renderCustom(carData)
     end
 end
 
+-- Main module:
 
-
-
-local Sim = ac.getSim()
+local Sim                                = ac.getSim()
 
 if Sim.driverNamesShown == true then
     ui.onDriverNameTag(true, rgbm(1, 1, 1, 0.7), renderCustom, {
@@ -236,18 +222,20 @@ local function getFocusedCar()
     end
 end
 
-
-
-function script.update(dt)
-    -- 每frame 刷新更新车辆信息，如果没有就添加到表里, 为了表同步
+setInterval(function()
+    -- 表同步
     for index, car in ac.iterateCars() do
         updateDriverTableData(car.index)
     end
-
     -- 有焦点车辆时，计算距离
     local focusedCar = getFocusedCar()
     ac.debug("焦点车辆", focusedCar)
     if focusedCar then
         calculateDistance(focusedCar)
     end
+end, 200)
+
+
+
+function script.update(dt)
 end

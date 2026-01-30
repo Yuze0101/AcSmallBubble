@@ -23,18 +23,20 @@ local function getFocusedCar()
     end
 end
 
-
-
-function script.update(dt)
-    -- 每frame 刷新更新车辆信息，如果没有就添加到表里, 为了表同步
+setInterval(function()
+    -- 表同步
     for index, car in ac.iterateCars() do
         updateDriverTableData(car.index)
     end
-
     -- 有焦点车辆时，计算距离
     local focusedCar = getFocusedCar()
     ac.debug("焦点车辆", focusedCar)
     if focusedCar then
         calculateDistance(focusedCar)
     end
+end, 200)
+
+
+
+function script.update(dt)
 end
