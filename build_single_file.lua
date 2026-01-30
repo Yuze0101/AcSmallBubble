@@ -1,5 +1,5 @@
 --- 构建脚本：将 src 目录中的模块合并成一个文件
---- 根据 Lua 项目构建与文件合并规范，实现源码合并功能
+--- 使用虚拟模块系统实现，无需修改源码中的 require/return
 
 local function read_file(filepath)
     local file = io.open(filepath, "r")
@@ -25,64 +25,72 @@ end
 
 local function build()
     print("开始构建单文件版本...")
+
+    -- 定义模块列表 (文件名 -> 模块名)
+    -- 注意：顺序不重要，因为我们使用的是模块预加载机制
+    local modules = {
+        { path = "./src/config.lua", name = "config" },
+        { path = "./src/utils.lua", name = "utils" },
+        { path = "./src/driverTable.lua", name = "driverTable" },
+        { path = "./src/render.lua", name = "render" }
+        -- main.lua 单独处理，作为入口
+    }
     
-    -- 读取各个模块的内容
-    local utils_content = read_file("./src/utils.lua")
-    local driver_table_content = read_file("./src/driverTable.lua")
-    local render_content = read_file("./src/render.lua")
-    local config_content = read_file("./src/config.lua")
+    local output_content = {}
+    table.insert(output_content, "-- Auto-generated single file build")
+    table.insert(output_content, "-- Generated at " .. os.date("%Y-%m-%d %H:%M:%S"))
+    table.insert(output_content, "")
+    
+    -- 1. 添加微型模块加载器
+    table.insert(output_content, [[
+-- Virtual Module System
+local __modules__ = {}
+local __module_cache__ = {}
+
+local function __require__(name)
+    if __module_cache__[name] then
+        return __module_cache__[name]
+    end
+    if __modules__[name] then
+        local ret = __modules__[name]()
+        __module_cache__[name] = ret
+        return ret
+    end
+    -- Fallback to system require if not found in bundle (optional, ac lua usually doesn't need this for internal files)
+    return require(name)
+end
+
+-- Override global require (or just use local replacement if preferred, but global is easier for existing code)
+local _original_require = require
+require = __require__
+]])
+
+    -- 2. 包装并写入每个模块
+    for _, mod in ipairs(modules) do
+        print("Processing module: " .. mod.name)
+        local content = read_file(mod.path)
+        
+        table.insert(output_content, string.format("-- Module: %s", mod.name))
+        table.insert(output_content, string.format("__modules__['%s'] = function()", mod.name))
+        table.insert(output_content, content)
+        table.insert(output_content, "end\n")
+    end
+
+    -- 3. 写入入口文件 main.lua
+    print("Processing entry: main.lua")
     local main_content = read_file("./src/main.lua")
-    
-    -- 构建最终输出内容
-    local output_content = "-- Auto-generated single file build\n"
-    output_content = output_content .. "-- Generated at " .. os.date("%Y-%m-%d %H:%M:%S") .. "\n"
-    output_content = output_content .. "-- Original modules combined: config, utils, driverTable, render, main\n\n"
-    
-    -- 添加 config 模块内容（移除 return 语句）
-    output_content = output_content .. "-- Module: config\n"
-    config_content = config_content:gsub("[%s\n\r]+return%s+config[%s%w\n\r]*", "")
-    output_content = output_content .. config_content .. "\n\n"
-    
-    -- 添加 driverTable 模块内容（移除 return 语句）
-    output_content = output_content .. "-- Module: driverTable\n"
-    -- 移除 return 语句（根据实际的return语句格式）
-    driver_table_content = driver_table_content:gsub("\nreturn driverTable, updateDriverTableData", "")
-    output_content = output_content .. driver_table_content .. "\n\n"
-    
-    -- 添加 utils 模块内容（移除 require 语句和 return 语句）
-    output_content = output_content .. "-- Module: utils\n"
-    -- 移除 require 语句
-    utils_content = utils_content:gsub('local%s+driverTable%s*=%s*require%s+"driverTable"%s*\n?', '')
-    utils_content = utils_content:gsub('local%s+config%s*=%s*require%s+"config"%s*\n?', '')
-    -- 移除 return 语句（完整移除整个return语句行）
-    utils_content = utils_content:gsub('[\n\r]+%s*return%s+calculateDistance,%s+calculateScaleByDistance,%s+calculateDrawPosition[%s%w\n\r]*', '\n')
-    output_content = output_content .. utils_content .. "\n\n"
-    
-    -- 添加 render 模块内容（移除 require 语句和 return 语句及类型注释）
-    output_content = output_content .. "-- Module: render\n"
-    -- 移除 require 语句
-    render_content = render_content:gsub('local%s+driverTable%s*=%s*require%s+"driverTable"%s*\n?', '')
-    render_content = render_content:gsub('local%s+config%s*=%s*require%s+"config"%s*\n?', '')
-    -- 移除对utils的require和类型注释（包括类型注释本身）
-    render_content = render_content:gsub('local%s+[%w_%s%,]+=%s*require%s+"utils"[^\n]*\n', '')
-    render_content = render_content:gsub('%-%-@type[^\n]*\n', '')
-    -- 移除 return 语句
-    render_content = render_content:gsub('[\n\r]+%s*return%s+renderCustom[%s%w\n\r]*', '')
-    output_content = output_content .. render_content .. "\n\n"
-    
-    -- 添加 main 模块内容，移除 require 语句
-    output_content = output_content .. "-- Main module:\n"
-    -- 移除 main 模块中的所有 require 语句及相关类型注解
-    main_content = main_content:gsub('local%s+renderCustom%s*=%s*require%s+"render"[^\n]*\n', '')
-    main_content = main_content:gsub('local%s+calculateDistance%s*=%s*require%s+"utils"[^\n]*\n', '')
-    main_content = main_content:gsub('local%s+driverTable,%s*updateDriverTableData%s*=%s*require%s+"driverTable"[^\n]*\n', '')
-    main_content = main_content:gsub('%-%-@type[^\n]*\n', '')  -- 移除类型注释
-    output_content = output_content .. main_content
+    table.insert(output_content, "-- Entry Point: main.lua")
+    table.insert(output_content, "(function()")
+    table.insert(output_content, main_content)
+    table.insert(output_content, "end)()")
+
+    -- 连接所有内容
+    local final_content = table.concat(output_content, "\n")
     
     -- 写入输出文件
     local output_file = "./AcSmallBubble.lua"
     print("正在写入合并后的文件: " .. output_file)
-    write_file(output_file, output_content)
+    write_file(output_file, final_content)
     
     print("构建完成! 输出文件: " .. output_file)
 end
