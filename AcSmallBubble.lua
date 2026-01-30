@@ -1,5 +1,5 @@
 -- Auto-generated single file build
--- Generated at 2026-01-30 13:45:00
+-- Generated at 2026-01-30 13:54:00
 
 -- Virtual Module System
 local __modules__ = {}
@@ -201,6 +201,8 @@ local function renderDistance(distance)
     ui.popDWriteFont()
 end
 
+local downloadStatus = {}
+
 --- @param distance number
 local function renderImage(distance)
     local imageSource = config.images.A
@@ -211,14 +213,31 @@ local function renderImage(distance)
     else
         imageSource = config.images.A
     end
-    -- Try to get image size
+
     local size = ui.imageSize(imageSource)
+    
+    -- Initialize status if nil
+    if not downloadStatus[imageSource] then
+        downloadStatus[imageSource] = { requested = false, loaded = false }
+    end
+
     if size.x == 0 then 
+        if not downloadStatus[imageSource].requested then
+            ac.log("AcSmallBubble: Triggering download for " .. imageSource)
+            print("AcSmallBubble: Triggering download for " .. imageSource) -- also print to console
+            downloadStatus[imageSource].requested = true
+        end
         -- Image not ready. Draw invisible placeholder to force download.
         ui.drawImage(imageSource, vec2(0,0), vec2(1,1), rgbm(0,0,0,0))
         return 
+    else
+        if not downloadStatus[imageSource].loaded then
+            ac.log("AcSmallBubble: Image loaded successfully: " .. imageSource .. " Size: " .. size.x .. "x" .. size.y)
+            print("AcSmallBubble: Image loaded successfully: " .. imageSource .. " Size: " .. size.x .. "x" .. size.y)
+            downloadStatus[imageSource].loaded = true
+        end
     end
-    
+
     local width = 800
     local height = size.y / size.x * width
     local screenWidth = config.render.baseWidth

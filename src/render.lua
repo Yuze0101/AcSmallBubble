@@ -27,6 +27,8 @@ local function renderDistance(distance)
     ui.popDWriteFont()
 end
 
+local downloadStatus = {}
+
 --- @param distance number
 local function renderImage(distance)
     local imageSource = config.images.A
@@ -37,20 +39,38 @@ local function renderImage(distance)
     else
         imageSource = config.images.A
     end
+
     local size = ui.imageSize(imageSource)
+    
+    -- Initialize status if nil
+    if not downloadStatus[imageSource] then
+        downloadStatus[imageSource] = { requested = false, loaded = false }
+    end
+
     if size.x == 0 then 
+        if not downloadStatus[imageSource].requested then
+            ac.log("AcSmallBubble: Triggering download for " .. imageSource)
+            print("AcSmallBubble: Triggering download for " .. imageSource) -- also print to console
+            downloadStatus[imageSource].requested = true
+        end
         -- Image not ready. Draw invisible placeholder to force download.
         ui.drawImage(imageSource, vec2(0,0), vec2(1,1), rgbm(0,0,0,0))
         return 
+    else
+        if not downloadStatus[imageSource].loaded then
+            ac.log("AcSmallBubble: Image loaded successfully: " .. imageSource .. " Size: " .. size.x .. "x" .. size.y)
+            print("AcSmallBubble: Image loaded successfully: " .. imageSource .. " Size: " .. size.x .. "x" .. size.y)
+            downloadStatus[imageSource].loaded = true
+        end
     end
+
     local width = 800
     local height = size.y / size.x * width
-        local screenWidth = config.render.baseWidth
-        local screenHeight = config.render.baseHeight
-        local posX = (screenWidth - width) / 2
-        local posY = screenHeight - height - 20 -- 20像素边距
-        ui.drawImage(imageSource, vec2(posX, posY), vec2(posX + width, posY + height), rgbm.colors.white)
-    -- end
+    local screenWidth = config.render.baseWidth
+    local screenHeight = config.render.baseHeight
+    local posX = (screenWidth - width) / 2
+    local posY = screenHeight - height - 20 -- 20像素边距
+    ui.drawImage(imageSource, vec2(posX, posY), vec2(posX + width, posY + height), rgbm.colors.white)
 end
 
 --- @param carData ac.StateCar
