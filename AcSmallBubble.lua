@@ -7,12 +7,12 @@ local __module_cache__ = {}
 
 local function __require__(name)
     if __module_cache__[name] then
-        return __module_cache__[name]
+        return unpack(__module_cache__[name])
     end
     if __modules__[name] then
-        local ret = __modules__[name]()
+        local ret = { __modules__[name]() }
         __module_cache__[name] = ret
-        return ret
+        return unpack(ret)
     end
     -- Fallback to system require if not found in bundle (optional, ac lua usually doesn't need this for internal files)
     return require(name)
