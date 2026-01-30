@@ -1,95 +1,95 @@
-# NameTag Logic Analysis
+# NameTag 逻辑分析
 
-This document analyzes the logic for rendering the NameTag (bubble) above cars, specifically focusing on canvas size, content arrangement, and centering logic.
+本文档分析了车辆上方 NameTag（气泡）的渲染逻辑，重点关注画布尺寸、内容排列和居中逻辑。
 
-## 1. Canvas Dimensions & Coordinate System
+## 1. 画布尺寸与坐标系统
 
-Based on `src/config.lua`:
+基于 `src/config.lua`：
 
-- **Base Canvas Size**: The canvas used for drawing the nametag content has a fixed resolution defined in config:
-  - Width: `config.render.baseWidth` = **1200**
-  - Height: `config.render.baseHeight` = **500**
+- **基础画布尺寸**：用于绘制 nametag 内容的画布具有固定的分辨率配置：
+  - 宽度：`config.render.baseWidth` = **1200**
+  - 高度：`config.render.baseHeight` = **500**
 
-- **Coordinate System**:
-  - `(0, 0)` is the top-left corner of the canvas.
-  - X axis: 0 to 1200
-  - Y axis: 0 to 500
+- **坐标系统**：
+  - `(0, 0)` 为画布左上角。
+  - X 轴范围：0 到 1200
+  - Y 轴范围：0 到 500
 
-## 2. Driver Name Rendering
+## 2. 车手名字渲染 (Driver Name)
 
-Located in `src/render.lua` -> `renderName(carInfo)`:
+位于 `src/render.lua` -> `renderName(carInfo)`：
 
-- **Font Size**: `config.render.driverNameFontSize` = **52**
-- **Area Definition**: `config.render.driverNameArea` = `vec2(1000, 60)`
-- **Alignment**:
-  - `ui.Alignment.Center` (Horizontal)
-  - `ui.Alignment.Center` (Vertical)
-- **Centering Logic**:
-  - The text is drawn inside a box of size 1000x60.
-  - The `ui.dwriteTextAligned` function handles the centering within this box.
-  - **Implicit Centering Issue**: The code does *not* explicitly specify the position (top-left) of this 1000x60 box in `ui.dwriteTextAligned`.
-    - If `p1` (position) is omitted or defaults to current cursor, it might be drawn at `(0,0)`.
-    - Since the canvas is 1200 wide and the text area is 1000 wide, if drawn at X=0, it would be left-aligned relative to the canvas (0-1000), leaving 200px empty on the right.
-    - **Correction Needed**: To be perfectly centered on a 1200px canvas, the 1000px text box should start at X = `(1200 - 1000) / 2 = 100`.
+- **字体大小**：`config.render.driverNameFontSize` = **52**
+- **区域定义**：`config.render.driverNameArea` = `vec2(1000, 60)`
+- **对齐方式**：
+  - 水平：`ui.Alignment.Center`
+  - 垂直：`ui.Alignment.Center`
+- **居中逻辑**：
+  - 文本在一个 1000x60 的框内绘制。
+  - `ui.dwriteTextAligned` 函数负责在该框内居中。
+  - **隐性居中问题**：代码*没有*显式指定这个 1000x60 框的起始坐标（左上角位置）。
+    - 如果 `p1`（位置）缺失或默认为当前光标位置，它可能会在 `(0,0)` 处绘制。
+    - 由于画布宽 1200，而文本区域宽 1000，如果在 X=0 处绘制，相对于 1200 的画布来说，它其实是靠左的（占据 0-1000），右边会留空 200px。
+    - **修正建议**：为了在 1200px 的画布上完美居中，这个 1000px 的文本框起始 X 坐标应为 `(1200 - 1000) / 2 = 100`。
 
-## 3. Distance Text Rendering
+## 3. 距离文本渲染 (Distance Text)
 
-Located in `src/render.lua` -> `renderDistance(distance)`:
+位于 `src/render.lua` -> `renderDistance(distance)`：
 
-- **Font Size**: `config.render.distanceFontSize` = **42**
-- **Area Definition**: `config.render.distanceArea` = `vec2(1000, 40)`
-- **Alignment**:
-  - `ui.Alignment.Center` (Horizontal)
-  - `ui.Alignment.Center` (Vertical)
-- **Centering Logic**:
-  - Similar to the name, it uses a 1000px wide box.
-  - Likely faces the same potential off-center issue if the box position isn't explicitly calculated to be `(1200 - 1000) / 2`.
+- **字体大小**：`config.render.distanceFontSize` = **42**
+- **区域定义**：`config.render.distanceArea` = `vec2(1000, 40)`
+- **对齐方式**：
+  - 水平：`ui.Alignment.Center`
+  - 垂直：`ui.Alignment.Center`
+- **居中逻辑**：
+  - 与名字渲染类似，也是使用 1000px 宽的框。
+  - 同样存在潜在的未完全居中（偏左）风险，因为框的起始位置可能未显式计算为 `(1200 - 1000) / 2`。
 
-## 4. Image Rendering (Bubble)
+## 4. 图片渲染 (Image/Bubble)
 
-Located in `src/render.lua` -> `renderImage(distance)`:
+位于 `src/render.lua` -> `renderImage(distance)`：
 
-- **Image Source**: Selects image A, B, or C based on distance.
-- **Sizing Logic**:
-  - **Target Width**: Fixed at **800** pixels (`local width = 800`).
-  - **Target Height**: Calculated to maintain aspect ratio (`size.y / size.x * width`).
-- **Centering Calculation**:
+- **图片源**：根据距离选择 A、B 或 C 图。
+- **尺寸逻辑**：
+  - **目标宽度**：固定为 **800** 像素 (`local width = 800`)。
+  - **目标高度**：根据宽高比自动计算 (`size.y / size.x * width`)。
+- **居中计算**：
   ```lua
   local screenWidth = config.render.baseWidth  -- 1200
   local posX = (screenWidth - width) / 2       -- (1200 - 800) / 2 = 200
-  local posY = screenHeight - height - 20      -- 20 pixels from bottom
+  local posY = screenHeight - height - 20      -- 距离底部 20 像素
   ```
-  - **Analysis**: The calculation `(screenWidth - width) / 2` correctly centers the image horizontally on the 1200px canvas.
-  - **Position**: `posX` will be 200. The image spans from X=200 to X=1000.
+  - **分析**：`(screenWidth - width) / 2` 这一计算公式正确地将 800px 宽的图片在 1200px 的画布上水平居中了。
+  - **位置**：`posX` 结果为 200。图片将绘制在 X=200 到 X=1000 的范围内。
 
-## 5. Final Composition
+## 5. 最终合成 (Final Composition)
 
-The `renderCustom` function draws everything onto the canvas:
-1. Clears canvas.
-2. Draws Name.
-3. Draws Distance.
-4. Draws Image.
+`renderCustom` 函数将所有内容绘制到画布上：
+1. 清空画布。
+2. 绘制名字。
+3. 绘制距离。
+4. 绘制图片。
 
-After the canvas is prepared:
-- It is drawn into the world using `ui.drawImage(canvas, p1, p2, ...)`
-- **World Positioning**:
-  - `calculateDrawPosition(scale)` in `src/utils.lua` determines where the canvas appears in 3D space above the car.
-  - The canvas itself is scaled based on distance (`calculateScaleByDistance`).
+画布准备好后：
+- 使用 `ui.drawImage(canvas, p1, p2, ...)` 将其绘制到游戏世界中。
+- **世界定位**：
+  - `src/utils.lua` 中的 `calculateDrawPosition(scale)` 决定了画布在车辆上方 3D 空间中的显示位置。
+  - 画布本身会根据距离进行缩放 (`calculateScaleByDistance`)。
 
-## Summary of Centering Logic
+## 居中逻辑总结
 
-| Element | Width | Canvas Width | Centering Method | Status |
+| 元素 | 宽度 | 画布宽度 | 居中方法 | 状态 |
 | :--- | :--- | :--- | :--- | :--- |
-| **Image** | 800 | 1200 | Explicit Math: `(1200-800)/2` | ✅ **Correct** |
-| **Name** | 1000 | 1200 | `ui.dwriteTextAligned` box | ⚠️ **Potential Offset** (Checks needed if box starts at X=0) |
-| **Distance** | 1000 | 1200 | `ui.dwriteTextAligned` box | ⚠️ **Potential Offset** (Checks needed if box starts at X=0) |
+| **图片 (Image)** | 800 | 1200 | 显式数学计算：`(1200-800)/2` | ✅ **正确** |
+| **名字 (Name)** | 1000 | 1200 | `ui.dwriteTextAligned` 文本框 | ⚠️ **潜在偏移** (需检查文本框起始是否为 X=0) |
+| **距离 (Distance)** | 1000 | 1200 | `ui.dwriteTextAligned` 文本框 | ⚠️ **潜在偏移** (需检查文本框起始是否为 X=0) |
 
-**Recommendation for Name/Distance**:
-To ensure text is perfectly centered relative to the image and canvas, rendering calls should explicitely set the standard position:
+**关于名字/距离的建议**：
+为了确保文本相对于图片和画布完美居中，渲染调用应该显式设置起始位置（居中偏移）：
 ```lua
--- Example fix for centering text box
+-- 居中文本框的修复示例
 local x_offset = (config.render.baseWidth - config.render.driverNameArea.x) / 2
-ui.setCursor(vec2(x_offset, Y_POSITION)) -- Set cursor before drawing if strictly checking relative pos
--- OR pass the rect explicitly to the draw command if supported
+ui.setCursor(vec2(x_offset, Y_POSITION)) -- 在绘制前设置光标位置
+-- 或者如果在 dwriteTextAligned 中支持，直接传入计算后的 rect
 ```
-*Note: If `ui.dwriteTextAligned` draws relative to the current cursor position and the cursor is at (0,0), then the text block (1000px) is technically not centered in the 1200px canvas, it's shifted left.*
+*注：如果 `ui.dwriteTextAligned` 是相对于当前光标位置绘制，且光标默认在 (0,0)，那么 1000px 的文本块在 1200px 的画布上虽然文本块内部居中了，但整体是偏左的。*
