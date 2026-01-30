@@ -211,10 +211,13 @@ local function renderImage(distance)
     else
         imageSource = config.images.A
     end
-    
-    -- REMOVE isImageReady check to force download trigger
+    -- Try to get image size
     local size = ui.imageSize(imageSource)
-    if size.x == 0 then return end -- Avoid division by zero if size is invalid
+    if size.x == 0 then 
+        -- Image not ready. Draw invisible placeholder to force download.
+        ui.drawImage(imageSource, vec2(0,0), vec2(1,1), rgbm(0,0,0,0))
+        return 
+    end
     
     local width = 800
     local height = size.y / size.x * width

@@ -37,11 +37,14 @@ local function renderImage(distance)
     else
         imageSource = config.images.A
     end
-    -- if ui.isImageReady(imageSource) then
-        local size = ui.imageSize(imageSource)
-        if size.x == 0 then return end -- Avoid division by zero if size is invalid
-        local width = 800
-        local height = size.y / size.x * width
+    local size = ui.imageSize(imageSource)
+    if size.x == 0 then 
+        -- Image not ready. Draw invisible placeholder to force download.
+        ui.drawImage(imageSource, vec2(0,0), vec2(1,1), rgbm(0,0,0,0))
+        return 
+    end
+    local width = 800
+    local height = size.y / size.x * width
         local screenWidth = config.render.baseWidth
         local screenHeight = config.render.baseHeight
         local posX = (screenWidth - width) / 2
