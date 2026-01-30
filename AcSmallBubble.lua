@@ -233,7 +233,7 @@ setInterval(function()
     if focusedCar then
         calculateDistance(focusedCar)
     end
-end, 200)
+end, 0.2)
 
 
 
