@@ -37,8 +37,9 @@ local function renderImage(distance)
     else
         imageSource = config.images.A
     end
-    if ui.isImageReady(imageSource) then
+    -- if ui.isImageReady(imageSource) then
         local size = ui.imageSize(imageSource)
+        if size.x == 0 then return end -- Avoid division by zero if size is invalid
         local width = 800
         local height = size.y / size.x * width
         local screenWidth = config.render.baseWidth
@@ -46,7 +47,7 @@ local function renderImage(distance)
         local posX = (screenWidth - width) / 2
         local posY = screenHeight - height - 20 -- 20像素边距
         ui.drawImage(imageSource, vec2(posX, posY), vec2(posX + width, posY + height), rgbm.colors.white)
-    end
+    -- end
 end
 
 --- @param carData ac.StateCar

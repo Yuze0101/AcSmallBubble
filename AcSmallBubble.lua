@@ -1,8 +1,29 @@
 -- Auto-generated single file build
--- Generated at 2026-01-30 11:08:47
--- Original modules combined: config, utils, driverTable, render, main
+-- Generated at 2026-01-30 13:45:00
+
+-- Virtual Module System
+local __modules__ = {}
+local __module_cache__ = {}
+
+local function __require__(name)
+    if __module_cache__[name] then
+        return __module_cache__[name]
+    end
+    if __modules__[name] then
+        local ret = __modules__[name]()
+        __module_cache__[name] = ret
+        return ret
+    end
+    -- Fallback to system require if not found in bundle (optional, ac lua usually doesn't need this for internal files)
+    return require(name)
+end
+
+-- Override global require (or just use local replacement if preferred, but global is easier for existing code)
+local _original_require = require
+require = __require__
 
 -- Module: config
+__modules__['config'] = function()
 --- 配置模块
 local config = {}
 
@@ -56,42 +77,16 @@ config.carDistance = {
     far = 15,
 }
 
--- Module: driverTable
---- @class DriverData
---- @field carInfo ac.StateCar
---- @field chatMessage string
---- @field canvas ui.ExtraCanvas
---- @field distance number
 
 
---- @type table<integer, DriverData>
-local driverTable = {}
-
---- @type function
---- @param index integer
-local function updateDriverTableData(index)
-    local carInfo = ac.getCar(index)
-    if not carInfo then
-        return
-    end
-
-    -- 没有所以的数据，新加到表里
-    if not driverTable[index] then
-        -- 保存车辆信息、聊天信息、画布信息
-        driverTable[index] = {
-            carInfo = carInfo,
-            chatMessage = "",
-            canvas = ui.ExtraCanvas(vec2(config.render.baseWidth, config.render.baseHeight), 1, render.AntialiasingMode.ExtraSharpCMAA),
-            distance = 0
-        }
-        return
-    end
-    ac.debug("driverTable", driverTable)
+return config
 end
 
-
-
 -- Module: utils
+__modules__['utils'] = function()
+local driverTable = require "driverTable"
+local config = require "config"
+
 --- @param focusedCar ac.StateCar
 local function calculateDistance(focusedCar)
     for index, driverData in pairs(driverTable) do
@@ -132,8 +127,56 @@ local function calculateDrawPosition(scale)
     return p1, p2
 end
 
+return calculateDistance, calculateScaleByDistance, calculateDrawPosition
+end
+
+-- Module: driverTable
+__modules__['driverTable'] = function()
+local config = require "config"
+
+--- @class DriverData
+--- @field carInfo ac.StateCar
+--- @field chatMessage string
+--- @field canvas ui.ExtraCanvas
+--- @field distance number
+
+
+--- @type table<integer, DriverData>
+local driverTable = {}
+
+--- @type function
+--- @param index integer
+local function updateDriverTableData(index)
+    local carInfo = ac.getCar(index)
+    if not carInfo then
+        return
+    end
+
+    -- 没有所以的数据，新加到表里
+    if not driverTable[index] then
+        -- 保存车辆信息、聊天信息、画布信息
+        driverTable[index] = {
+            carInfo = carInfo,
+            chatMessage = "",
+            canvas = ui.ExtraCanvas(vec2(config.render.baseWidth, config.render.baseHeight), 1, render.AntialiasingMode.ExtraSharpCMAA),
+            distance = 0
+        }
+        return
+    end
+    ac.debug("driverTable", driverTable)
+end
+
+
+return driverTable, updateDriverTableData
+end
 
 -- Module: render
+__modules__['render'] = function()
+local driverTable                                                        = require "driverTable"
+local config                                                             = require "config"
+---@type fun(focusedCar: ac.StateCar), fun(distance: number): number, fun(scale: number): vec2, vec2
+local calculateDistance, calculateScaleByDistance, calculateDrawPosition = require "utils"
+
 --- @param carInfo ac.StateCar
 local function renderName(carInfo)
     local font = ui.DWriteFont("Segoe UI"):weight(ui.DWriteFont.Weight.Regular)
@@ -168,16 +211,18 @@ local function renderImage(distance)
     else
         imageSource = config.images.A
     end
-    if ui.isImageReady(imageSource) then
-        local size = ui.imageSize(imageSource)
-        local width = 800
-        local height = size.y / size.x * width
-        local screenWidth = config.render.baseWidth
-        local screenHeight = config.render.baseHeight
-        local posX = (screenWidth - width) / 2
-        local posY = screenHeight - height - 20 -- 20像素边距
-        ui.drawImage(imageSource, vec2(posX, posY), vec2(posX + width, posY + height), rgbm.colors.white)
-    end
+    
+    -- REMOVE isImageReady check to force download trigger
+    local size = ui.imageSize(imageSource)
+    if size.x == 0 then return end -- Avoid division by zero if size is invalid
+    
+    local width = 800
+    local height = size.y / size.x * width
+    local screenWidth = config.render.baseWidth
+    local screenHeight = config.render.baseHeight
+    local posX = (screenWidth - width) / 2
+    local posY = screenHeight - height - 20 -- 20像素边距
+    ui.drawImage(imageSource, vec2(posX, posY), vec2(posX + width, posY + height), rgbm.colors.white)
 end
 
 --- @param carData ac.StateCar
@@ -203,7 +248,20 @@ local function renderCustom(carData)
     end
 end
 
--- Main module:
+
+
+return renderCustom
+end
+
+-- Entry Point: main.lua
+(function()
+local renderCustom                       = require "render"
+local calculateDistance, _, _            = require "utils"
+
+---@type table<integer, DriverData>, fun(index: integer)
+local driverTable, updateDriverTableData = require "driverTable"
+
+local config                             = require "config"
 
 local Sim                                = ac.getSim()
 
@@ -239,3 +297,4 @@ end, 0.2)
 
 function script.update(dt)
 end
+end)()
